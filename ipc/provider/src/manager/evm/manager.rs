@@ -1218,6 +1218,7 @@ impl BottomUpCheckpointRelayer for EthSubnetManager {
 
         Ok(events)
     }
+
     async fn current_epoch(&self) -> Result<ChainEpoch> {
         let epoch = self
             .ipc_contract_info

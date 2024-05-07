@@ -14,6 +14,7 @@ use crate::commands::checkpoint::quorum_reached::{
     GetQuorumReacehdEvents, GetQuorumReachedEventsArgs,
 };
 use crate::commands::checkpoint::relayer::{BottomUpRelayer, BottomUpRelayerArgs};
+use crate::commands::checkpoint::status::{Status, StatusArgs};
 use crate::{CommandLineHandler, GlobalArguments};
 use clap::{Args, Subcommand};
 
@@ -23,6 +24,7 @@ mod list_checkpoints;
 mod list_validator_changes;
 mod quorum_reached;
 mod relayer;
+mod status;
 
 #[derive(Debug, Args)]
 #[command(name = "checkpoint", about = "checkpoint related commands")]
@@ -35,6 +37,7 @@ pub(crate) struct CheckpointCommandsArgs {
 impl CheckpointCommandsArgs {
     pub async fn handle(&self, global: &GlobalArguments) -> anyhow::Result<()> {
         match &self.command {
+            Commands::Status(args) => Status::handle(global, args).await,
             Commands::ListBottomup(args) => ListBottomUpCheckpoints::handle(global, args).await,
             Commands::Relayer(args) => BottomUpRelayer::handle(global, args).await,
             Commands::ListValidatorChanges(args) => {
@@ -59,4 +62,5 @@ pub(crate) enum Commands {
     ListBottomupBundle(GetBottomUpBundlesArgs),
     QuorumReachedEvents(GetQuorumReachedEventsArgs),
     LastBottomupCheckpointHeight(LastBottomUpCheckpointHeightArgs),
+    Status(StatusArgs),
 }

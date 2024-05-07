@@ -656,6 +656,15 @@ impl IpcProvider {
         conn.manager().chain_head_height().await
     }
 
+    pub async fn checkpoint_period(&self, subnet: &SubnetID) -> anyhow::Result<ChainEpoch> {
+        let conn = match self.connection(subnet) {
+            None => return Err(anyhow!("target subnet not found")),
+            Some(conn) => conn,
+        };
+
+        conn.manager().checkpoint_period(subnet).await
+    }
+
     pub async fn get_bottom_up_bundle(
         &self,
         subnet: &SubnetID,
