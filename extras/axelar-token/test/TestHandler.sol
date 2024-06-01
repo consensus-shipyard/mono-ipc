@@ -4,10 +4,29 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "../src/IpcTokenHandler.sol";
 import "./DummyERC20.sol";
-import { FvmAddressHelper } from "@ipc/src/lib/FvmAddressHelper.sol";
+import {FvmAddressHelper} from "@ipc/src/lib/FvmAddressHelper.sol";
+
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+import "openzeppelin-contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract TestHandler is Test {
     using FvmAddressHelper for address;
+
+    function newIpcTokenHandler(
+        address axelarIts,
+        address ipcGateway,
+        address owner
+    ) internal returns (IpcTokenHandler handler) {
+        bytes memory initCall = abi.encodeCall(IpcTokenHandler.initialize, (axelarIts, ipcGateway, owner));
+        IpcTokenHandler initialImplementation = new IpcTokenHandler();
+        TransparentUpgradeableProxy transparentProxy = new TransparentUpgradeableProxy(
+            address(initialImplementation),
+            owner,
+            initCall
+        );
+        handler = IpcTokenHandler(address(transparentProxy));
+    }
 
     function test_handler_Ok() public {
         address axelarIts = vm.addr(1);
@@ -15,15 +34,11 @@ contract TestHandler is Test {
         address owner = vm.addr(3);
         DummyERC20 token = new DummyERC20("Test token", "TST", 10000);
 
-        IpcTokenHandler handler = new IpcTokenHandler({
-            axelarIts: axelarIts,
-            ipcGateway: ipcGateway,
-            admin: owner
-        });
+        IpcTokenHandler handler = newIpcTokenHandler(axelarIts, ipcGateway, owner);
 
         address[] memory route = new address[](1);
         route[0] = 0x2a3eF0F414c626e51AFA2F29f3F7Be7a45C6DB09;
-        SubnetID memory subnet = SubnetID({ root: 314159, route: route });
+        SubnetID memory subnet = SubnetID({root: 314159, route: route});
 
         address recipient = 0x6B505cdCCCA34aE8eea5D382aBaD40d2AfEa74ad;
 
@@ -50,15 +65,11 @@ contract TestHandler is Test {
         address owner = vm.addr(3);
         DummyERC20 token = new DummyERC20("Test token", "TST", 10000);
 
-        IpcTokenHandler handler = new IpcTokenHandler({
-            axelarIts: axelarIts,
-            ipcGateway: ipcGateway,
-            admin: owner
-        });
+        IpcTokenHandler handler = newIpcTokenHandler(axelarIts, ipcGateway, owner);
 
         address[] memory route = new address[](1);
         route[0] = 0x2a3eF0F414c626e51AFA2F29f3F7Be7a45C6DB09;
-        SubnetID memory subnet = SubnetID({ root: 314159, route: route });
+        SubnetID memory subnet = SubnetID({root: 314159, route: route});
 
         address recipient = 0x6B505cdCCCA34aE8eea5D382aBaD40d2AfEa74ad;
 
@@ -91,12 +102,8 @@ contract TestHandler is Test {
         address owner = vm.addr(3);
         DummyERC20 token = new DummyERC20("Test token", "TST", 10000);
 
-        IpcTokenHandler handler = new IpcTokenHandler({
-            axelarIts: axelarIts,
-            ipcGateway: ipcGateway,
-            admin: owner
-        });
-        
+        IpcTokenHandler handler = newIpcTokenHandler(axelarIts, ipcGateway, owner);
+
         // garbage
         bytes memory params = abi.encode(1);
 
@@ -124,5 +131,4 @@ contract TestHandler is Test {
         require(token.allowance(address(handler), owner) == 0);
         require(token.balanceOf(owner) == 4200);
     }
-
 }

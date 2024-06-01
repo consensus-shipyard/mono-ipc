@@ -31,6 +31,9 @@
 [submodule "extras/linked-token/lib/openzeppelin-contracts"]
 	path = extras/linked-token/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "extras/axelar-token/lib/openzeppelin-contracts-upgradeable"]
+	path = extras/axelar-token/lib/openzeppelin-contracts-upgradeable
+	url = https://github.com/openzeppelin/openzeppelin-contracts-upgradeable
 [submodule "extras/linked-token/lib/openzeppelin-contracts-upgradeable"]
 	path = extras/linked-token/lib/openzeppelin-contracts-upgradeable
 	url = https://github.com/openzeppelin/openzeppelin-contracts-upgradeable

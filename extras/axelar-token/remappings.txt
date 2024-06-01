@@ -5,3 +5,4 @@ forge-std/=lib/forge-std/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
 fevmate/=../../contracts/lib/fevmate/contracts/
 @ipc/=../../contracts/
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/

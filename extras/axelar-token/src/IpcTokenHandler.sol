@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { InterchainTokenExecutable } from '@axelar-network/interchain-token-service/executable/InterchainTokenExecutable.sol';
-import { IERC20 } from "openzeppelin-contracts/interfaces/IERC20.sol";
-import { Ownable } from "openzeppelin-contracts/access/Ownable.sol";
-import { SubnetID, SupplySource, SupplyKind } from "@ipc/src/structs/Subnet.sol";
-import { FvmAddress } from "@ipc/src/structs/FvmAddress.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IERC20} from "openzeppelin-contracts/interfaces/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
+import {SubnetID, SupplySource, SupplyKind} from "@ipc/src/structs/Subnet.sol";
+import {FvmAddress} from "@ipc/src/structs/FvmAddress.sol";
+import {IpcMsgKind, ResultMsg, OutcomeType, IpcEnvelope} from "@ipc/src/structs/CrossNet.sol";
+import {FvmAddressHelper} from "@ipc/src/lib/FvmAddressHelper.sol";
+import {SubnetIDHelper} from "@ipc/src/lib/SubnetIDHelper.sol";
+
+import {InterchainTokenExecutableUpgradeable} from "./InterchainTokenExecutableUpgradeable.sol";
+
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IIpcHandler } from "@ipc/sdk/interfaces/IIpcHandler.sol";
-import { IpcMsgKind, ResultMsg, OutcomeType, IpcEnvelope } from "@ipc/src/structs/CrossNet.sol";
-import { FvmAddressHelper } from "@ipc/src/lib/FvmAddressHelper.sol";
-import { SubnetIDHelper } from "@ipc/src/lib/SubnetIDHelper.sol";
-import { SafeERC20 } from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 
 interface TokenFundedGateway {
     function fundWithToken(SubnetID calldata subnetId, FvmAddress calldata to, uint256 amount) external;
@@ -24,7 +29,13 @@ interface SubnetActor {
 //         IpcTokenSender via the Axelar ITS, receiving some token value to deposit into an IPC subnet (specified in the
 //         incoming message). The IpcTokenHandler handles deposit failures by crediting the value back to the original
 //         beneficiary, and making it available from them to withdraw() on the rootnet.
-contract IpcTokenHandler is InterchainTokenExecutable, IIpcHandler, Ownable {
+contract IpcTokenHandler is
+    Initializable,
+    InterchainTokenExecutableUpgradeable,
+    IIpcHandler,
+    OwnableUpgradeable,
+    UUPSUpgradeable
+{
     using FvmAddressHelper for address;
     using FvmAddressHelper for FvmAddress;
     using SubnetIDHelper for SubnetID;
@@ -37,9 +48,20 @@ contract IpcTokenHandler is InterchainTokenExecutable, IIpcHandler, Ownable {
 
     TokenFundedGateway public _ipcGateway;
 
-    constructor(address axelarIts, address ipcGateway, address admin) InterchainTokenExecutable(axelarIts) Ownable(admin) {
-        _ipcGateway = TokenFundedGateway(ipcGateway);
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
     }
+
+    function initialize(address axelarIts, address ipcGateway, address admin) public initializer {
+        __InterchainTokenExecutable_init(axelarIts);
+        _ipcGateway = TokenFundedGateway(ipcGateway);
+        __UUPSUpgradeable_init();
+        __Ownable_init(admin);
+    }
+
+    // upgrade proxy - onlyOwner can upgrade
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // @notice The InterchainTokenExecutable abstract parent contract hands off to this function after verifying that
     //         the call originated at the Axelar ITS.
@@ -115,5 +137,4 @@ contract IpcTokenHandler is InterchainTokenExecutable, IIpcHandler, Ownable {
     function adminTokenIncreaseAllowance(address token, uint256 amount) external onlyOwner {
         IERC20(token).safeIncreaseAllowance(owner(), amount);
     }
-
 }
