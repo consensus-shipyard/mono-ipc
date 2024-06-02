@@ -45,9 +45,6 @@ jobs:
       - name: Checkout the branch that triggered this run
         uses: actions/checkout@v4
         with:
-          # TODO(jie): After switch to workflow_dispatch only, we should use ref_name.
-          # head_ref only works for workflow triggered by pull requests.
-          # ref: ${{ github.ref_name }}
           ref: ${{ github.head_ref }}
           submodules: recursive
 

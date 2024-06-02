@@ -14,7 +14,6 @@ import {IpcEnvelope, CallMsg, IpcMsgKind} from "@ipc/src/structs/CrossNet.sol";
 
 import {SubnetActorDiamond} from "@ipc/src/SubnetActorDiamond.sol";
 import {LinkedTokenController} from "../src/LinkedTokenController.sol";
-//import {InvalidOriginContract, InvalidOriginSubnet} from "@ipc/src/examples/cross-token/IpcCrossTokenErrors.sol";
 import {USDCTest} from "../src/USDCTest.sol";
 import {InvalidOriginContract, InvalidOriginSubnet} from "../src/LinkedToken.sol";
 

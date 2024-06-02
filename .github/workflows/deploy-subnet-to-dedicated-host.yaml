@@ -2,20 +2,21 @@ name: Deploy to calibration net on a dedicated server
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
   # Only allow one run at a time for this workflow
-  group: deploy-to-dedicated-host
+  group: deploy-subnet-to-dedicated-host
   cancel-in-progress: true
 
 jobs:
-  deploy_to_dedicated_host:
+  deploy-subnet-to-dedicated-host:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code repo
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.head_ref }}
       - name: Copy deployment script files to the host
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -38,7 +39,7 @@ jobs:
           host: ${{ secrets.DEDICATED_SERVER_IP_ADDRESS }}
           username: ubuntu
           key: ${{ secrets.DEDICATED_SERVER_PRIVATE_KEY }}
-          script: rm -rf /home/ubuntu/.ipc && cp -r /home/ubuntu/scripts/deploy_subnet_under_calibration_net/.ipc /home/ubuntu/
+          script: rm -vrf /home/ubuntu/.ipc && cp -r /home/ubuntu/scripts/deploy_subnet_under_calibration_net/.ipc /home/ubuntu/
       - name: Create wallet file locally
         run: |
           echo '${{ secrets.CI_TEST_WALLET_JSON }}' > evm_keystore.json
@@ -56,5 +57,5 @@ jobs:
           host: ${{ secrets.DEDICATED_SERVER_IP_ADDRESS }}
           username: ubuntu
           key: ${{ secrets.DEDICATED_SERVER_PRIVATE_KEY }}
-          script: bash -il /home/ubuntu/scripts/deploy_subnet_under_calibration_net/deploy.sh ${{ github.ref_name }}
+          script: bash -il /home/ubuntu/scripts/deploy_subnet_under_calibration_net/deploy.sh ${{ github.head_ref }}
           command_timeout: 50m

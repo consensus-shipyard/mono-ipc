@@ -15,7 +15,6 @@ import {IpcEnvelope, CallMsg, IpcMsgKind} from "@ipc/src/structs/CrossNet.sol";
 
 import {SubnetActorDiamond} from "@ipc/src/SubnetActorDiamond.sol";
 import {LinkedTokenController} from "../src/LinkedTokenController.sol";
-//import {InvalidOriginContract, InvalidOriginSubnet} from "../src/@ipc/src/examples/cross-token/IpcCrossTokenErrors.sol";
 import {USDCTest} from "../src/USDCTest.sol";
 
 import "openzeppelin-contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
