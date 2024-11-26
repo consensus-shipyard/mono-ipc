@@ -69,7 +69,9 @@ port = 9184
 enabled = true
 
 [tracing.file]
-enabled = false
+enabled = true
+level = "trace"
+directory = "/fendermint/logs"
 
 [snapshots]
 # Enable the export and import of snapshots.

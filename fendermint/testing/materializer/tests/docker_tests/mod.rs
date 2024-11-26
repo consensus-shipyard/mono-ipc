@@ -6,5 +6,6 @@
 
 // Tests using the manifest bearing their name.
 pub mod layer2;
+pub mod layer_2_plus;
 pub mod root_only;
 pub mod standalone;

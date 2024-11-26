@@ -4,6 +4,8 @@ mod convert;
 #[allow(clippy::all)]
 pub mod checkpointing_facet;
 #[allow(clippy::all)]
+pub mod cross_messenger;
+#[allow(clippy::all)]
 pub mod diamond_cut_facet;
 #[allow(clippy::all)]
 pub mod diamond_loupe_facet;

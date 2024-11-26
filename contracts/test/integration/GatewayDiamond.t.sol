@@ -27,7 +27,7 @@ import {CheckpointingFacet} from "../../contracts/gateway/router/CheckpointingFa
 import {XnetMessagingFacet} from "../../contracts/gateway/router/XnetMessagingFacet.sol";
 import {TopDownFinalityFacet} from "../../contracts/gateway/router/TopDownFinalityFacet.sol";
 
-import {ERR_GENERAL_CROSS_MSG_DISABLED} from "../../contracts/gateway/GatewayMessengerFacet.sol";
+import {ERR_GENERAL_CROSS_MSG_DISABLED, GatewayMessengerFacet} from "../../contracts/gateway/GatewayMessengerFacet.sol";
 import {DiamondCutFacet} from "../../contracts/diamond/DiamondCutFacet.sol";
 import {LibDiamond} from "../../contracts/lib/LibDiamond.sol";
 import {MerkleTreeHelper} from "../helpers/MerkleTreeHelper.sol";
@@ -38,6 +38,8 @@ import {GatewayFacetsHelper} from "../helpers/GatewayFacetsHelper.sol";
 
 import {SubnetActorDiamond} from "../../contracts/SubnetActorDiamond.sol";
 import {SubnetActorFacetsHelper} from "../helpers/SubnetActorFacetsHelper.sol";
+
+import {CrossMessenger} from "../../contracts/materializer/CrossMessenger.sol";
 
 contract GatewayActorDiamondTest is Test, IntegrationTestBase, SubnetWithNativeTokenMock {
     using SubnetIDHelper for SubnetID;

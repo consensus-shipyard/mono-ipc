@@ -142,12 +142,20 @@ impl TopDownFinalityQuery for EthSubnetManager {
             topic1,
         );
 
+        println!(
+            "---------- gateway_contract: {:?}",
+            gateway_contract.address()
+        );
+        println!("---------- topic1: {:?}", topic1);
+
         let ev = gateway_contract
             .event::<lib_gateway::NewTopDownMessageFilter>()
             .from_block(epoch as u64)
             .to_block(epoch as u64)
             .topic1(topic1)
             .address(ValueOrArray::Value(gateway_contract.address()));
+
+        println!("---------- ev: {:?}", ev);
 
         let mut messages = vec![];
         let mut hash = None;
@@ -160,8 +168,14 @@ impl TopDownFinalityQuery for EthSubnetManager {
                 hash = Some(meta.block_hash);
             }
 
+            println!("---------- before try from: {:?}", event.message);
+
             messages.push(IpcEnvelope::try_from(event.message)?);
+
+            println!("---------- after try from");
         }
+
+        println!("---------- messages: {:?}", messages);
 
         let block_hash = if let Some(h) = hash {
             h.0.to_vec()

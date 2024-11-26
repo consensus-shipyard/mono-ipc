@@ -3100,6 +3100,7 @@ dependencies = [
  "either",
  "env_logger 0.10.2",
  "ethers",
+ "ethers-contract",
  "fendermint_crypto",
  "fendermint_materializer",
  "fendermint_testing",

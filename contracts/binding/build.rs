@@ -60,6 +60,8 @@ fn main() {
         "LibStakingChangeLog",
         "LibGateway",
         "LibQuorum",
+        // Materializer TODO Karel - move this elsewhere
+        "CrossMessenger",
     ] {
         let module_name = camel_to_snake(contract_name);
         let input_path =

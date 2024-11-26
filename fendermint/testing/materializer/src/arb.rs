@@ -159,6 +159,7 @@ fn gen_manifest(
             balances: initial_balances,
             nodes: subnet.nodes,
             env: gen_env(g),
+            solidity_deployments: None,
         }
     };
 
@@ -342,6 +343,7 @@ fn gen_subnets(
                 // Adding 1 because 0 is not accepted by the contracts.
                 period: u64::arbitrary(g).mod_floor(&86400u64) + 1,
             },
+            solidity_deployments: None,
         };
 
         let sid = SubnetId::arbitrary(g);

@@ -32,6 +32,8 @@ pub trait Materials {
     type Node: Sync + Send;
     /// The handle to a relayer process.
     type Relayer: Sync + Send;
+    /// Represents custom contract deployment to a subnet.
+    type SolidityContractDeployment: Sync + Send;
 }
 
 /// Write some content to a file.

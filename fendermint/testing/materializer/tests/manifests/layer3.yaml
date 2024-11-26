@@ -1,0 +1,107 @@
+accounts:
+  alice: {}
+  bob: {}
+  charlie: {}
+  will: {}
+
+rootnet:
+  type: New
+  # Balances and collateral are in atto
+  validators:
+    alice: "100"
+  balances:
+    # 100FIL is 100_000_000_000_000_000_000
+    alice: "100000000000000000000"
+    will: "400000000000000000000"
+    bob: "8000000000000000000000000"
+    charlie: "900000000000000000000"
+  env:
+    CMT_CONSENSUS_TIMEOUT_COMMIT: 2s
+    FM_LOG_LEVEL: info,fendermint=debug
+  solidity_deployments:
+    - name: "cross_messenger"
+      deployer: will
+      # TODO Karel - allow relative paths
+      foundry_root: "/Users/karlem/work/ipc/contracts"
+      contract:
+        name: "CrossMessenger"
+        path: "contracts/materializer/CrossMessenger.sol"
+        constructor_args:
+          - ""
+
+  nodes:
+    brussels:
+      mode:
+        type: Validator
+        validator: alice
+      seed_nodes: []
+      ethapi: true
+
+subnets:
+  england:
+    creator: bob
+    # Minimum collateral is 1 nanoFIL, which is 1_000_000_000 atto
+    validators:
+      charlie: "1000000000"
+    # Submitting a signature for a checkpoint says it needs 0.059552996FIL
+    balances:
+      bob: "30000000000000000000"
+      will: "200000000000000000000"
+    bottom_up_checkpoint:
+      period: 100
+    env:
+      FM_LOG_LEVEL: info,fendermint=debug
+      # Enable debug log on the relayers
+      RUST_LOG: debug
+
+    relayers:
+      euston:
+        submitter: bob
+        follow_node: london
+        submit_node: brussels
+
+    nodes:
+      london:
+        mode:
+          type: Validator
+          validator: charlie
+        parent_node: brussels
+        seed_nodes: []
+        ethapi: true
+
+    subnets:
+      oxfordshire:
+        creator: will
+        validators:
+          will: "1000000000"
+        balances:
+          will: "100000000000000000000"
+        bottom_up_checkpoint:
+          period: 100
+        env:
+          FM_LOG_LEVEL: info,fendermint=debug
+          RUST_LOG: debug
+        solidity_deployments:
+          - name: "cross_messenger"
+            deployer: will
+            foundry_root: "/Users/karlem/work/ipc/contracts"
+            contract:
+              name: "CrossMessenger"
+              path: "contracts/materializer/CrossMessenger.sol"
+              constructor_args:
+                - ""
+
+        relayers:
+          kings_cross:
+            submitter: will
+            follow_node: oxford
+            submit_node: london
+
+        nodes:
+          oxford:
+            mode:
+              type: Validator
+              validator: will
+            parent_node: london
+            seed_nodes: []
+            ethapi: true

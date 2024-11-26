@@ -129,15 +129,15 @@ where
     }
 
     // Tear down the testnet.
-    drop(testnet);
+    // drop(testnet);
 
     // Allow some time for containers to be dropped.
     // This only happens if the testnet setup succeeded,
     // otherwise the system shuts down too quick, but
     // at least we can inspect the containers.
     // If they don't all get dropped, `docker system prune` helps.
-    let drop_handle = materializer.take_dropper();
-    let _ = tokio::time::timeout(*TEARDOWN_TIMEOUT, drop_handle).await;
+    // let drop_handle = materializer.take_dropper();
+    // let _ = tokio::time::timeout(*TEARDOWN_TIMEOUT, drop_handle).await;
 
     res
 }

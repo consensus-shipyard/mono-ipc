@@ -65,6 +65,12 @@ impl EthAddress {
     }
 }
 
+impl EthAddress {
+    pub fn to_hex(&self) -> String {
+        format!("0x{}", hex::encode(self.0))
+    }
+}
+
 impl Display for EthAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Display::fmt(&ethers::types::Address::from(self.0), f)

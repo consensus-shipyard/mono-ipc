@@ -2,23 +2,29 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 use anyhow::{anyhow, bail, Context};
 use async_recursion::async_recursion;
+use core::time;
 use either::Either;
+use ethers::etherscan::account;
 use fvm_shared::chainid::ChainID;
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashMap},
     fmt::Display,
     marker::PhantomData,
+    path::Path,
 };
 use url::Url;
+
+use std::thread;
+use std::time::Duration;
 
 use crate::{
     manifest::{
         BalanceMap, CollateralMap, EnvMap, IpcDeployment, Manifest, Node, NodeMode, ParentNode,
-        Rootnet, Subnet,
+        Rootnet, SolidityContractDeployment, Subnet,
     },
     materializer::{
-        Materializer, NodeConfig, ParentConfig, RelayerConfig, SubmitConfig, SubnetConfig,
-        TargetConfig,
+        Materializer, NodeConfig, ParentConfig, RelayerConfig, SolidityContract,
+        SolidityContractDeploymentConfig, SubmitConfig, SubnetConfig, TargetConfig,
     },
     materials::Materials,
     AccountId, NodeId, NodeName, RelayerName, ResourceHash, SubnetId, SubnetName, TestnetName,
@@ -43,6 +49,7 @@ pub struct Testnet<M: Materials, R> {
     externals: Vec<Url>,
     accounts: BTreeMap<AccountId, M::Account>,
     deployments: BTreeMap<SubnetName, M::Deployment>,
+    solidity_deployments: BTreeMap<SubnetName, HashMap<String, M::SolidityContractDeployment>>,
     genesis: BTreeMap<SubnetName, M::Genesis>,
     subnets: BTreeMap<SubnetName, M::Subnet>,
     nodes: BTreeMap<NodeName, M::Node>,
@@ -75,6 +82,7 @@ where
             externals: Default::default(),
             accounts: Default::default(),
             deployments: Default::default(),
+            solidity_deployments: Default::default(),
             genesis: Default::default(),
             subnets: Default::default(),
             nodes: Default::default(),
@@ -166,6 +174,19 @@ where
         self.deployments
             .get(name)
             .ok_or_else(|| anyhow!("deployment for {name:?} does not exist"))
+    }
+
+    /// Get a solidity deployment by subnet and contract name.
+    pub fn solidity_deployment(
+        &self,
+        subnet_name: &SubnetName,
+        contract_name: String,
+    ) -> anyhow::Result<&M::SolidityContractDeployment> {
+        self.solidity_deployments
+            .get(subnet_name)
+            .ok_or_else(|| anyhow!("solidity deployment for {contract_name:?} does not exist"))?
+            .get(&contract_name)
+            .ok_or_else(|| anyhow!("solidity deployment for {contract_name:?} does not exist"))
     }
 
     /// List all the nodes in a subnet.
@@ -419,6 +440,7 @@ where
                 balances,
                 nodes,
                 env,
+                solidity_deployments,
             } => {
                 self.create_root_genesis(m, root_name, validators.clone(), balances.clone())
                     .context("failed to create root genesis")?;
@@ -435,6 +457,14 @@ where
                 self.create_and_start_nodes(m, root_name, nodes, env)
                     .await
                     .context("failed to start root nodes")?;
+
+                if let Some(solidity_deployments) = solidity_deployments {
+                    self.deploy_solidity_contracts(m, root_name, solidity_deployments.clone())
+                        .await
+                        .with_context(|| {
+                            format!("failed to deploy solidity contracts in {root_name}")
+                        })?;
+                }
             }
         }
         Ok(())
@@ -640,13 +670,73 @@ where
             self.relayers.extend(relayers.into_iter());
         }
 
+        if let Some(solidity_deployments) = &subnet.solidity_deployments {
+            self.deploy_solidity_contracts(m, &subnet_name, solidity_deployments.clone())
+                .await
+                .with_context(|| format!("failed to deploy solidity contracts in {subnet_name}"))?;
+        }
+
         // Recursively create and start all subnet nodes.
         for (subnet_id, subnet) in &subnet.subnets {
+            let nodes = self.nodes_by_subnet(&subnet_name);
+            let account = self.account(&subnet.creator)?;
+            let created_subnet = self.subnet(&subnet_name)?;
+
+            // Wait for the creator to have some balance.
+            // We need to wait because it is funded by the parent via top-down finality.
+            m.wait_for_balance(created_subnet, nodes.clone(), account)
+                .await
+                .with_context(|| "failed to wait for creator balance")?;
+
             self.create_and_start_subnet(m, &subnet_name, subnet_id, subnet)
                 .await
                 .with_context(|| format!("failed to start subnet {subnet_id} in {subnet_name}"))?;
         }
 
+        Ok(())
+    }
+
+    async fn deploy_solidity_contracts(
+        &mut self,
+        m: &mut R,
+        subnet_name: &SubnetName,
+        solidity_deployments: Vec<SolidityContractDeployment>,
+    ) -> anyhow::Result<()> {
+        for deployment in solidity_deployments {
+            let nodes = self.nodes_by_subnet(subnet_name);
+            let account = self.account(&deployment.deployer)?;
+            let created_subnet = self.subnet(subnet_name)?;
+
+            // Wait for the creator to have some balance.
+            // We need to wait because it is funded by the parent via top-down finality.
+            m.wait_for_balance(created_subnet, nodes.clone(), account)
+                .await
+                .with_context(|| "failed to wait for deployer balance")?;
+
+            let libraries = deployment.libraries.clone().map(|libs| {
+                libs.into_iter()
+                    .map(|lib| lib.into())
+                    .collect::<Vec<SolidityContract>>()
+            });
+
+            let deployment_config = SolidityContractDeploymentConfig {
+                foundry_root: deployment.foundry_root.clone(),
+                contract: deployment.contract.clone().into(),
+                libraries,
+                nodes,
+                account,
+            };
+
+            let deployed = m
+                .deploy_solidity_contract(deployment_config)
+                .await
+                .with_context(|| "failed to deploy solidity contract")?;
+
+            self.solidity_deployments
+                .entry(subnet_name.clone())
+                .or_default()
+                .insert(deployment.name, deployed);
+        }
         Ok(())
     }
 }

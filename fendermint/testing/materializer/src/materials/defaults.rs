@@ -17,6 +17,12 @@ use ipc_api::subnet_id::SubnetID;
 use super::export;
 use crate::{AccountId, AccountName, SubnetName};
 
+pub struct DefaultSolidityContractDeployment {
+    pub name: String,
+    pub path: String,
+    pub address: EthAddress,
+}
+
 pub struct DefaultDeployment {
     pub name: SubnetName,
     pub gateway: EthAddress,
