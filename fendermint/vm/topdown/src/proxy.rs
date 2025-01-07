@@ -13,6 +13,7 @@ use ipc_api::subnet_id::SubnetID;
 use ipc_observability::emit;
 use ipc_provider::manager::{GetBlockHashResult, TopDownQueryPayload};
 use ipc_provider::IpcProvider;
+use std::sync::Arc;
 use std::time::Instant;
 use tracing::instrument;
 
@@ -40,6 +41,35 @@ pub trait ParentQueryProxy {
         &self,
         height: BlockHeight,
     ) -> anyhow::Result<TopDownQueryPayload<Vec<StakingChangeRequest>>>;
+}
+
+#[async_trait]
+impl<P: Send + Sync + 'static + ParentQueryProxy> ParentQueryProxy for Arc<P> {
+    async fn get_chain_head_height(&self) -> Result<BlockHeight> {
+        self.as_ref().get_chain_head_height().await
+    }
+
+    async fn get_genesis_epoch(&self) -> Result<BlockHeight> {
+        self.as_ref().get_genesis_epoch().await
+    }
+
+    async fn get_block_hash(&self, height: BlockHeight) -> Result<GetBlockHashResult> {
+        self.as_ref().get_block_hash(height).await
+    }
+
+    async fn get_top_down_msgs(
+        &self,
+        height: BlockHeight,
+    ) -> Result<TopDownQueryPayload<Vec<IpcEnvelope>>> {
+        self.as_ref().get_top_down_msgs(height).await
+    }
+
+    async fn get_validator_changes(
+        &self,
+        height: BlockHeight,
+    ) -> Result<TopDownQueryPayload<Vec<StakingChangeRequest>>> {
+        self.as_ref().get_validator_changes(height).await
+    }
 }
 
 /// The proxy to the subnet's parent

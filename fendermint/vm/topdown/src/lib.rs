@@ -13,6 +13,7 @@ pub mod voting;
 
 pub mod observation;
 pub mod observe;
+pub mod syncer;
 pub mod vote;
 
 use async_stm::Stm;
@@ -28,6 +29,7 @@ use std::time::Duration;
 pub use crate::cache::{SequentialAppendError, SequentialKeyCache, ValueIter};
 pub use crate::error::Error;
 pub use crate::finality::CachedFinalityProvider;
+use crate::observation::Observation;
 pub use crate::toggle::Toggle;
 
 pub type BlockHeight = u64;
@@ -106,6 +108,13 @@ impl Config {
     pub fn max_cache_blocks(&self) -> BlockHeight {
         self.max_cache_blocks.unwrap_or(DEFAULT_MAX_CACHE_BLOCK)
     }
+}
+
+/// On-chain data structure representing a topdown checkpoint agreed to by a
+/// majority of subnet validators. DAG-CBOR encoded, embedded in CertifiedCheckpoint.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub enum Checkpoint {
+    V1(Observation),
 }
 
 /// The finality view for IPC parent at certain height.
@@ -192,4 +201,24 @@ pub(crate) fn is_null_round_error(err: &anyhow::Error) -> bool {
 
 pub(crate) fn is_null_round_str(s: &str) -> bool {
     s.contains(NULL_ROUND_ERR_MSG)
+}
+
+impl Checkpoint {
+    pub fn target_height(&self) -> BlockHeight {
+        match self {
+            Checkpoint::V1(b) => b.parent_height,
+        }
+    }
+
+    pub fn target_hash(&self) -> &Bytes {
+        match self {
+            Checkpoint::V1(b) => &b.parent_hash,
+        }
+    }
+
+    pub fn cumulative_effects_comm(&self) -> &Bytes {
+        match self {
+            Checkpoint::V1(b) => &b.cumulative_effects_comm,
+        }
+    }
 }
