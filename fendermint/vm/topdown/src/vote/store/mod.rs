@@ -1,6 +1,8 @@
 // Copyright 2022-2024 Protocol Labs
 // SPDX-License-Identifier: Apache-2.0, MIT
 
+mod persisted;
+
 use crate::observation::Observation;
 use crate::vote::error::Error;
 use crate::vote::payload::{PowerTable, Vote};
@@ -8,6 +10,7 @@ use crate::vote::Weight;
 use crate::BlockHeight;
 use fendermint_crypto::quorum::ECDSACertificate;
 use fendermint_vm_genesis::ValidatorKey;
+pub use persisted::PersistedVoteStore;
 use std::collections::btree_map::Entry;
 use std::collections::{BTreeMap, HashMap};
 

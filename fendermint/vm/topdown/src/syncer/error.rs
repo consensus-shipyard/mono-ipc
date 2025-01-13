@@ -25,4 +25,6 @@ pub enum Error {
     CannotCommitObservationAtNullBlock(BlockHeight),
     #[error("Missing block view at height {0} for target observation height {0}")]
     MissingBlockView(BlockHeight, BlockHeight),
+    #[error("persistent parent view store error: {0}")]
+    PersistentParentViewStore(String),
 }

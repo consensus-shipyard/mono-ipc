@@ -31,4 +31,7 @@ pub enum Error {
 
     #[error("received unexpected gossip event {0}")]
     UnexpectedGossipEvent(String),
+
+    #[error("persistent vote store error: {0}")]
+    PersistentVoteStore(String),
 }

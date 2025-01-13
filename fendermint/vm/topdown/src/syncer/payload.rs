@@ -9,8 +9,9 @@ use ipc_api::cross::IpcEnvelope;
 use ipc_api::staking::StakingChangeRequest;
 use multihash::Code;
 use multihash::MultihashDigest;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ParentBlockViewPayload {
     pub parent_hash: BlockHash,
     /// Encodes cross-net messages.
@@ -19,7 +20,7 @@ pub struct ParentBlockViewPayload {
     pub validator_changes: Vec<StakingChangeRequest>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ParentBlockView {
     pub parent_height: BlockHeight,
     /// If the payload is None, this means the parent height is a null block
