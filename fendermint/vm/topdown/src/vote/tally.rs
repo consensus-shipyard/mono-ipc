@@ -7,7 +7,10 @@ use crate::vote::payload::{PowerTable, PowerUpdates, Vote};
 use crate::vote::store::VoteStore;
 use crate::vote::Weight;
 use crate::BlockHeight;
+use fendermint_crypto::quorum::ECDSACertificate;
 use fendermint_vm_genesis::ValidatorKey;
+use num_rational::Ratio;
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 /// VoteTally aggregates different votes received from various validators in the network
@@ -24,6 +27,9 @@ pub(crate) struct VoteTally<S> {
 
     /// The latest height that was voted to be finalized and committed to child blockchian
     last_finalized_height: BlockHeight,
+
+    /// The quorum threshold ratio required for a quorum
+    quorum_ratio: Ratio<Weight>,
 }
 
 impl<S: VoteStore> VoteTally<S> {
@@ -44,6 +50,7 @@ impl<S: VoteStore> VoteTally<S> {
             power_table: HashMap::from_iter(power_table),
             votes: store,
             last_finalized_height,
+            quorum_ratio: Ratio::new(2, 3),
         })
     }
 
@@ -66,7 +73,7 @@ impl<S: VoteStore> VoteTally<S> {
     /// The equivalent formula can be found in CometBFT [here](https://github.com/cometbft/cometbft/blob/a8991d63e5aad8be82b90329b55413e3a4933dc0/types/vote_set.go#L307).
     pub fn quorum_threshold(&self) -> Weight {
         let total_weight: Weight = self.power_table.values().sum();
-        total_weight * 2 / 3 + 1
+        total_weight * self.quorum_ratio.numer() / self.quorum_ratio.denom() + 1
     }
 
     /// Return the height of the first entry in the chain.
@@ -80,6 +87,20 @@ impl<S: VoteStore> VoteTally<S> {
     pub fn get_votes_at_height(&self, height: BlockHeight) -> Result<Vec<Vote>, Error> {
         let votes = self.votes.get_votes_at_height(height)?;
         Ok(votes.into_owned())
+    }
+
+    pub fn check_quorum_cert(&self, cert: &ECDSACertificate<Observation>) -> bool {
+        let power_table = self
+            .ordered_validators()
+            .into_iter()
+            .map(|(v, w)| (v.public_key(), *w));
+        match cert.quorum_reached(power_table, self.quorum_ratio) {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::error!(err = e.to_string(), "check quorum encountered error");
+                false
+            }
+        }
     }
 
     /// Dump all the votes that is currently stored in the vote tally.
@@ -143,7 +164,7 @@ impl<S: VoteStore> VoteTally<S> {
     }
 
     /// Find a block on the (from our perspective) finalized chain that gathered enough votes from validators.
-    pub fn find_quorum(&self) -> Result<Option<Observation>, Error> {
+    pub fn find_quorum(&self) -> Result<Option<ECDSACertificate<Observation>>, Error> {
         let quorum_threshold = self.quorum_threshold();
         let Some(max_height) = self.votes.latest_vote_height()? else {
             tracing::info!("vote store has no vote yet, skip finding quorum");
@@ -163,7 +184,8 @@ impl<S: VoteStore> VoteTally<S> {
                 );
 
                 if weight >= quorum_threshold {
-                    return Ok(Some(observation.clone()));
+                    let cert = votes.generate_cert(self.ordered_validators(), observation)?;
+                    return Ok(Some(cert));
                 }
             }
 
@@ -177,7 +199,15 @@ impl<S: VoteStore> VoteTally<S> {
     ///
     /// After this operation the minimum item in the chain will the new finalized block.
     pub fn set_finalized(&mut self, block_height: BlockHeight) -> Result<(), Error> {
-        self.votes.purge_votes_at_height(block_height)?;
+        let start = if let Some(start) = self.votes.earliest_vote_height()? {
+            start
+        } else {
+            block_height
+        };
+        for h in start..=block_height {
+            self.votes.purge_votes_at_height(h)?;
+        }
+
         self.last_finalized_height = block_height;
         Ok(())
     }
@@ -208,6 +238,21 @@ impl<S: VoteStore> VoteTally<S> {
                 *self.power_table.entry(vk).or_default() = w;
             }
         }
+    }
+
+    fn ordered_validators(&self) -> Vec<(&ValidatorKey, &Weight)> {
+        let mut sorted_powers = self.power_table.iter().collect::<Vec<_>>();
+
+        sorted_powers.sort_by(|a, b| {
+            let cmp = b.1.cmp(a.1);
+            if cmp != Ordering::Equal {
+                cmp
+            } else {
+                b.0.cmp(a.0)
+            }
+        });
+
+        sorted_powers
     }
 }
 
@@ -259,7 +304,7 @@ mod tests {
         vote_tally.add_vote(vote).unwrap();
 
         let mut obs2 = random_observation();
-        obs2.parent_height = obs.parent_height;
+        obs2.parent_subnet_height = obs.parent_subnet_height;
         let vote =
             Vote::v1_checked(CertifiedObservation::sign(obs2, 100, &validators[0].0).unwrap())
                 .unwrap();
@@ -281,7 +326,7 @@ mod tests {
         let observation = random_observation();
 
         vote_tally
-            .set_finalized(observation.parent_height - 1)
+            .set_finalized(observation.parent_subnet_height - 1)
             .unwrap();
 
         for validator in validators {
@@ -292,7 +337,7 @@ mod tests {
         }
 
         let ob = vote_tally.find_quorum().unwrap().unwrap();
-        assert_eq!(ob, observation);
+        assert_eq!(*ob.payload(), observation);
     }
 
     #[test]
@@ -317,10 +362,10 @@ mod tests {
 
         let observation1 = random_observation();
         let mut observation2 = observation1.clone();
-        observation2.parent_hash = vec![1];
+        observation2.parent_subnet_hash = vec![1];
 
         vote_tally
-            .set_finalized(observation1.parent_height - 1)
+            .set_finalized(observation1.parent_subnet_height - 1)
             .unwrap();
 
         for validator in validators_grp1 {
@@ -356,7 +401,7 @@ mod tests {
         let observation = random_observation();
 
         vote_tally
-            .set_finalized(observation.parent_height - 1)
+            .set_finalized(observation.parent_subnet_height - 1)
             .unwrap();
 
         for validator in validators {
@@ -367,7 +412,7 @@ mod tests {
         }
 
         let ob = vote_tally.find_quorum().unwrap().unwrap();
-        assert_eq!(ob, observation);
+        assert_eq!(*ob.payload(), observation);
 
         let new_powers = (0..3)
             .map(|_| (random_validator_key().1.clone(), 1))
@@ -391,7 +436,7 @@ mod tests {
         let observation = random_observation();
 
         vote_tally
-            .set_finalized(observation.parent_height - 1)
+            .set_finalized(observation.parent_subnet_height - 1)
             .unwrap();
 
         for (count, validator) in validators.iter().enumerate() {
@@ -413,6 +458,6 @@ mod tests {
         ]);
 
         let ob = vote_tally.find_quorum().unwrap().unwrap();
-        assert_eq!(ob, observation);
+        assert_eq!(*ob.payload(), observation);
     }
 }

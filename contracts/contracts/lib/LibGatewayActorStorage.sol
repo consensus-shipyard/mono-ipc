@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {NotSystemActor, NotEnoughFunds} from "../errors/IPCErrors.sol";
 import {QuorumMap} from "../structs/Quorum.sol";
-import {BottomUpCheckpoint, BottomUpMsgBatch, IpcEnvelope, ParentFinality} from "../structs/CrossNet.sol";
+import {BottomUpCheckpoint, BottomUpMsgBatch, IpcEnvelope, TopdownCheckpoint} from "../structs/CrossNet.sol";
 import {SubnetID, Subnet, ParentValidatorsTracker} from "../structs/Subnet.sol";
 import {Membership} from "../structs/Subnet.sol";
 import {AccountHelper} from "../lib/AccountHelper.sol";
@@ -60,7 +60,7 @@ struct GatewayActorStorage {
     /// SubnetID => Subnet
     mapping(bytes32 => Subnet) subnets;
     /// @notice The parent finalities. Key is the block number, value is the finality struct.
-    mapping(uint256 => ParentFinality) finalitiesMap;
+    mapping(uint256 => TopdownCheckpoint) finalitiesMap;
     /// @notice Postbox keeps track of all the cross-net messages triggered by
     /// an actor that need to be propagated further through the hierarchy.
     /// cross-net message id => CrossMsg

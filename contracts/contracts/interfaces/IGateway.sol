@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity ^0.8.23;
 
-import {BottomUpCheckpoint, BottomUpMsgBatch, IpcEnvelope, ParentFinality} from "../structs/CrossNet.sol";
+import {BottomUpCheckpoint, BottomUpMsgBatch, IpcEnvelope, TopdownCheckpoint} from "../structs/CrossNet.sol";
 import {FullActivityRollup} from "../structs/Activity.sol";
 import {SubnetID} from "../structs/Subnet.sol";
 import {FvmAddress} from "../structs/FvmAddress.sol";
@@ -66,7 +66,7 @@ interface IGateway {
     function propagate(bytes32 msgCid) external payable;
 
     /// @notice commit the ipc parent finality into storage
-    function commitParentFinality(ParentFinality calldata finality) external;
+    function commitTopdownCheckpoint(TopdownCheckpoint calldata finality) external;
 
     /// @notice creates a new bottom-up checkpoint
     function createBottomUpCheckpoint(

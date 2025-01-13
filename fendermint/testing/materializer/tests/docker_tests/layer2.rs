@@ -11,7 +11,7 @@ use fendermint_materializer::{HasEthApi, ResourceId};
 use fendermint_vm_actor_interface::init::builtin_actor_eth_addr;
 use fendermint_vm_actor_interface::ipc;
 use fendermint_vm_message::conv::from_fvm::to_eth_address;
-use ipc_actors_abis::gateway_getter_facet::{GatewayGetterFacet, ParentFinality};
+use ipc_actors_abis::gateway_getter_facet::{GatewayGetterFacet, TopdownCheckpoint};
 use ipc_actors_abis::subnet_actor_getter_facet::SubnetActorGetterFacet;
 
 use crate::with_testnet;
@@ -71,8 +71,8 @@ async fn test_topdown_and_bottomup() {
                 {
                     let mut retry = 0;
                     loop {
-                        let finality: ParentFinality = england_gateway
-                            .get_latest_parent_finality()
+                        let finality: TopdownCheckpoint = england_gateway
+                            .get_latest_topdown_checkpoint()
                             .call()
                             .await
                             .context("failed to get parent finality")?;

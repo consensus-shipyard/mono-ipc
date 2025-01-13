@@ -6,9 +6,9 @@ import {GatewayActorStorage, LibGatewayActorStorage} from "../lib/LibGatewayActo
 import {BURNT_FUNDS_ACTOR} from "../constants/Constants.sol";
 import {SubnetID, Subnet, AssetKind, Asset} from "../structs/Subnet.sol";
 import {SubnetActorGetterFacet} from "../subnet/SubnetActorGetterFacet.sol";
-import {CallMsg, IpcMsgKind, IpcEnvelope, OutcomeType, BottomUpMsgBatch, BottomUpMsgBatch, BottomUpCheckpoint, ParentFinality} from "../structs/CrossNet.sol";
+import {CallMsg, IpcMsgKind, IpcEnvelope, OutcomeType, BottomUpMsgBatch, BottomUpMsgBatch, BottomUpCheckpoint, TopdownCheckpoint} from "../structs/CrossNet.sol";
 import {Membership} from "../structs/Subnet.sol";
-import {CannotSendCrossMsgToItself, MethodNotAllowed, MaxMsgsPerBatchExceeded, InvalidXnetMessage ,OldConfigurationNumber, NotRegisteredSubnet, InvalidActorAddress, ParentFinalityAlreadyCommitted, InvalidXnetMessageReason} from "../errors/IPCErrors.sol";
+import {CannotSendCrossMsgToItself, MethodNotAllowed, MaxMsgsPerBatchExceeded, InvalidXnetMessage ,OldConfigurationNumber, NotRegisteredSubnet, InvalidActorAddress, TopdownCheckpointAlreadyCommitted, InvalidXnetMessageReason} from "../errors/IPCErrors.sol";
 import {CrossMsgHelper} from "../lib/CrossMsgHelper.sol";
 import {FilAddress} from "fevmate/contracts/utils/FilAddress.sol";
 import {SubnetIDHelper} from "../lib/SubnetIDHelper.sol";
@@ -117,27 +117,27 @@ library LibGateway {
 
     /// @notice obtain the ipc parent finality at certain block number
     /// @param blockNumber - the block number to obtain the finality
-    function getParentFinality(uint256 blockNumber) internal view returns (ParentFinality memory) {
+    function getTopdownCheckpoint(uint256 blockNumber) internal view returns (TopdownCheckpoint memory) {
         GatewayActorStorage storage s = LibGatewayActorStorage.appStorage();
         return s.finalitiesMap[blockNumber];
     }
 
     /// @notice obtain the latest committed ipc parent finality
-    function getLatestParentFinality() internal view returns (ParentFinality memory) {
+    function getLatestTopdownCheckpoint() internal view returns (TopdownCheckpoint memory) {
         GatewayActorStorage storage s = LibGatewayActorStorage.appStorage();
-        return getParentFinality(s.latestParentHeight);
+        return getTopdownCheckpoint(s.latestParentHeight);
     }
 
     /// @notice commit the ipc parent finality into storage
     /// @param finality - the finality to be committed
-    function commitParentFinality(
-        ParentFinality calldata finality
-    ) internal returns (ParentFinality memory lastFinality) {
+    function commitTopdownCheckpoint(
+        TopdownCheckpoint calldata finality
+    ) internal returns (TopdownCheckpoint memory lastFinality) {
         GatewayActorStorage storage s = LibGatewayActorStorage.appStorage();
 
         uint256 lastHeight = s.latestParentHeight;
         if (lastHeight >= finality.height) {
-            revert ParentFinalityAlreadyCommitted();
+            revert TopdownCheckpointAlreadyCommitted();
         }
         lastFinality = s.finalitiesMap[lastHeight];
 

@@ -65,10 +65,12 @@ where
         Ok(signed_record)
     }
 
+    #[allow(dead_code)]
     pub fn record(&self) -> &R {
         &self.record
     }
 
+    #[allow(dead_code)]
     pub fn envelope(&self) -> &SignedEnvelope {
         &self.envelope
     }

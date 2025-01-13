@@ -241,14 +241,14 @@ impl TopDownFinalityQuery for EthSubnetManager {
         })
     }
 
-    async fn latest_parent_finality(&self) -> Result<ChainEpoch> {
+    async fn latest_topdown_checkpoint(&self) -> Result<ChainEpoch> {
         tracing::info!("querying latest parent finality ");
 
         let contract = gateway_getter_facet::GatewayGetterFacet::new(
             self.ipc_contract_info.gateway_addr,
             Arc::new(self.ipc_contract_info.provider.clone()),
         );
-        let finality = contract.get_latest_parent_finality().call().await?;
+        let finality = contract.get_latest_topdown_checkpoint().call().await?;
         Ok(finality.height.as_u64() as ChainEpoch)
     }
 }

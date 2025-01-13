@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity ^0.8.23;
 
-import {BottomUpCheckpoint, BottomUpMsgBatch, IpcEnvelope, ParentFinality} from "../structs/CrossNet.sol";
+import {BottomUpCheckpoint, BottomUpMsgBatch, IpcEnvelope, TopdownCheckpoint} from "../structs/CrossNet.sol";
 import {QuorumInfo} from "../structs/Quorum.sol";
 import {SubnetID, Subnet} from "../structs/Subnet.sol";
 import {Membership} from "../structs/Subnet.sol";
@@ -71,13 +71,13 @@ contract GatewayGetterFacet {
 
     /// @notice Returns the parent chain finality information for a given block number.
     /// @param blockNumber The block number for which to retrieve parent-finality information.
-    function getParentFinality(uint256 blockNumber) external view returns (ParentFinality memory) {
-        return LibGateway.getParentFinality(blockNumber);
+    function getTopdownCheckpoint(uint256 blockNumber) external view returns (TopdownCheckpoint memory) {
+        return LibGateway.getTopdownCheckpoint(blockNumber);
     }
 
     /// @notice Gets the most recent parent-finality information from the parent.
-    function getLatestParentFinality() external view returns (ParentFinality memory) {
-        return LibGateway.getLatestParentFinality();
+    function getLatestTopdownCheckpoint() external view returns (TopdownCheckpoint memory) {
+        return LibGateway.getLatestTopdownCheckpoint();
     }
 
     /// @notice Returns the subnet with the given id.

@@ -61,7 +61,7 @@ error NotValidator(address);
 error OldConfigurationNumber();
 error PQDoesNotContainAddress();
 error PQEmpty();
-error ParentFinalityAlreadyCommitted();
+error TopdownCheckpointAlreadyCommitted();
 error PostboxNotExist();
 error SignatureReplay();
 error SubnetAlreadyKilled();

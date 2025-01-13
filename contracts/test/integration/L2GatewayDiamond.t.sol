@@ -30,7 +30,7 @@ contract L2GatewayActorDiamondTest is Test, L2GatewayActorDiamond {
     using CrossMsgHelper for IpcEnvelope;
     using GatewayFacetsHelper for GatewayDiamond;
 
-    function testGatewayDiamond_CommitParentFinality_BigNumberOfMessages() public {
+    function testGatewayDiamond_CommitTopdownCheckpoint_BigNumberOfMessages() public {
         uint256 n = 2000;
         FvmAddress[] memory validators = new FvmAddress[](1);
         validators[0] = FvmAddressHelper.from(vm.addr(100));

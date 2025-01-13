@@ -30,7 +30,7 @@ import {SubnetActorCheckpointingFacet} from "@ipc/contracts/subnet/SubnetActorCh
 import {CheckpointingFacet} from "@ipc/contracts/gateway/router/CheckpointingFacet.sol";
 import {FvmAddressHelper} from "@ipc/contracts/lib/FvmAddressHelper.sol";
 import {Consensus, CompressedActivityRollup} from "@ipc/contracts/structs/Activity.sol";
-import {IpcEnvelope, BottomUpMsgBatch, BottomUpCheckpoint, ParentFinality, IpcMsgKind, ResultMsg, CallMsg} from "@ipc/contracts/structs/CrossNet.sol";
+import {IpcEnvelope, BottomUpMsgBatch, BottomUpCheckpoint, IpcMsgKind, ResultMsg, CallMsg} from "@ipc/contracts/structs/CrossNet.sol";
 import {SubnetIDHelper} from "@ipc/contracts/lib/SubnetIDHelper.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {CrossMsgHelper} from "@ipc/contracts/lib/CrossMsgHelper.sol";

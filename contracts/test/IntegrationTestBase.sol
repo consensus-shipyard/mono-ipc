@@ -7,7 +7,7 @@ import "../contracts/errors/IPCErrors.sol";
 import {EMPTY_BYTES, METHOD_SEND} from "../contracts/constants/Constants.sol";
 import {ConsensusType} from "../contracts/enums/ConsensusType.sol";
 import {IDiamond} from "../contracts/interfaces/IDiamond.sol";
-import {IpcEnvelope, BottomUpCheckpoint, IpcMsgKind, ParentFinality, CallMsg} from "../contracts/structs/CrossNet.sol";
+import {IpcEnvelope, BottomUpCheckpoint, IpcMsgKind, TopdownCheckpoint, CallMsg} from "../contracts/structs/CrossNet.sol";
 import {FvmAddress} from "../contracts/structs/FvmAddress.sol";
 import {SubnetID, AssetKind, PermissionMode, PermissionMode, Subnet, Asset, IPCAddress, Validator} from "../contracts/structs/Subnet.sol";
 import {SubnetIDHelper} from "../contracts/lib/SubnetIDHelper.sol";
@@ -782,10 +782,14 @@ contract IntegrationTestBase is Test, TestParams, TestRegistry, TestSubnetActor,
         weights[1] = 100;
         weights[2] = 100;
 
-        ParentFinality memory finality = ParentFinality({height: block.number, blockHash: bytes32(0)});
+        TopdownCheckpoint memory finality = TopdownCheckpoint({
+            height: block.number,
+            blockHash: bytes32(0),
+            effectsCommitment: new bytes(0)
+        });
 
         vm.prank(FilAddress.SYSTEM_ACTOR);
-        gatewayDiamond.topDownFinalizer().commitParentFinality(finality);
+        gatewayDiamond.topDownFinalizer().commitTopdownCheckpoint(finality);
     }
 
     function setupWhiteListMethod(address caller, address src) public returns (bytes32) {
@@ -829,11 +833,15 @@ contract IntegrationTestBase is Test, TestParams, TestRegistry, TestSubnetActor,
         weights[0] = weight;
 
         vm.deal(validator, 1);
-        ParentFinality memory finality = ParentFinality({height: block.number, blockHash: bytes32(0)});
+        TopdownCheckpoint memory finality = TopdownCheckpoint({
+            height: block.number,
+            blockHash: bytes32(0),
+            effectsCommitment: new bytes(0)
+        });
         // uint64 n = gatewayDiamond.getter().getLastConfigurationNumber() + 1;
 
         vm.startPrank(FilAddress.SYSTEM_ACTOR);
-        gatewayDiamond.topDownFinalizer().commitParentFinality(finality);
+        gatewayDiamond.topDownFinalizer().commitTopdownCheckpoint(finality);
         vm.stopPrank();
     }
 

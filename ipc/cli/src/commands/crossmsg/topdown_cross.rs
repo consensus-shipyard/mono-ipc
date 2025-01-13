@@ -72,7 +72,7 @@ impl CommandLineHandler for LatestParentFinality {
         let provider = get_ipc_provider(global)?;
         let subnet = SubnetID::from_str(&arguments.subnet)?;
 
-        println!("{}", provider.latest_parent_finality(&subnet).await?);
+        println!("{}", provider.latest_topdown_checkpoint(&subnet).await?);
         Ok(())
     }
 }

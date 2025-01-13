@@ -9,19 +9,11 @@ use fendermint_vm_genesis::{Power, Validator};
 use fendermint_vm_interpreter::fvm::state::ipc::GatewayCaller;
 use fendermint_vm_interpreter::fvm::state::{FvmExecState, FvmStateParams};
 use fendermint_vm_interpreter::fvm::store::ReadOnlyBlockstore;
-use fendermint_vm_topdown::sync::ParentFinalityStateQuery;
-use fendermint_vm_topdown::IPCParentFinality;
+use fendermint_vm_topdown::launch::LaunchQuery;
 use fvm_ipld_blockstore::Blockstore;
 use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
-
-/// All the things that can be voted on in a subnet.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub enum AppVote {
-    /// The validator considers a certain block final on the parent chain.
-    ParentFinality(IPCParentFinality),
-}
+use fendermint_vm_topdown::Checkpoint;
 
 /// Queries the LATEST COMMITTED parent finality from the storage
 pub struct AppParentFinalityQuery<DB, SS, S, I>
@@ -62,7 +54,7 @@ where
     }
 }
 
-impl<DB, SS, S, I> ParentFinalityStateQuery for AppParentFinalityQuery<DB, SS, S, I>
+impl<DB, SS, S, I> LaunchQuery for AppParentFinalityQuery<DB, SS, S, I>
 where
     S: KVStore
         + Codec<AppState>
@@ -72,10 +64,10 @@ where
     DB: KVWritable<S> + KVReadable<S> + 'static + Clone,
     SS: Blockstore + 'static + Clone,
 {
-    fn get_latest_committed_finality(&self) -> anyhow::Result<Option<IPCParentFinality>> {
+    fn get_latest_checkpoint(&self) -> anyhow::Result<Option<Checkpoint>> {
         self.with_exec_state(|mut exec_state| {
             self.gateway_caller
-                .get_latest_parent_finality(&mut exec_state)
+                .get_latest_topdown_checkpoint(&mut exec_state)
         })
     }
 
@@ -85,5 +77,10 @@ where
                 .current_power_table(&mut exec_state)
                 .map(|(_, pt)| pt)
         })
+    }
+
+    fn latest_chain_block(&self) -> anyhow::Result<fendermint_vm_topdown::BlockHeight> {
+        self.with_exec_state(|s| Ok(s.block_height() as fendermint_vm_topdown::BlockHeight))
+            .map(|v| v.unwrap_or(1))
     }
 }

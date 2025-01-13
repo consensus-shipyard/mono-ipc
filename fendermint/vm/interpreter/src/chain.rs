@@ -10,33 +10,26 @@ use crate::{
     signed::{SignedMessageApplyRes, SignedMessageCheckRes, SyntheticMessage, VerifiableMessage},
     CheckInterpreter, ExecInterpreter, ProposalInterpreter, QueryInterpreter,
 };
-use anyhow::{anyhow, bail, Context};
+use anyhow::{anyhow, Context};
 use async_stm::atomically;
 use async_trait::async_trait;
-use fendermint_tracing::emit;
 use fendermint_vm_actor_interface::ipc;
-use fendermint_vm_event::ParentFinalityMissingQuorum;
-use fendermint_vm_message::ipc::ParentFinality;
+use fendermint_vm_genesis::ValidatorKey;
 use fendermint_vm_message::{
     chain::ChainMessage,
     ipc::{BottomUpCheckpoint, CertifiedMessage, IpcMessage, SignedRelayedMessage},
 };
 use fendermint_vm_resolver::pool::{ResolveKey, ResolvePool};
-use fendermint_vm_topdown::proxy::IPCProviderProxyWithLatency;
-use fendermint_vm_topdown::voting::{ValidatorKey, VoteTally};
-use fendermint_vm_topdown::{
-    CachedFinalityProvider, IPCParentFinality, ParentFinalityProvider, ParentViewProvider, Toggle,
-};
+use fendermint_vm_topdown::launch::Toggle;
+use fendermint_vm_topdown::{Checkpoint, TopdownClient};
 use fvm_ipld_blockstore::Blockstore;
 use fvm_ipld_encoding::RawBytes;
-use fvm_shared::clock::ChainEpoch;
 use fvm_shared::econ::TokenAmount;
 use num_traits::Zero;
 use std::sync::Arc;
 
 /// A resolution pool for bottom-up and top-down checkpoints.
 pub type CheckpointPool = ResolvePool<CheckpointPoolItem>;
-pub type TopDownFinalityProvider = Arc<Toggle<CachedFinalityProvider<IPCProviderProxyWithLatency>>>;
 
 /// These are the extra state items that the chain interpreter needs,
 /// a sort of "environment" supporting IPC.
@@ -44,9 +37,8 @@ pub type TopDownFinalityProvider = Arc<Toggle<CachedFinalityProvider<IPCProvider
 pub struct ChainEnv {
     /// CID resolution pool.
     pub checkpoint_pool: CheckpointPool,
-    /// The parent finality provider for top down checkpoint
-    pub parent_finality_provider: TopDownFinalityProvider,
-    pub parent_finality_votes: VoteTally,
+    /// The topdown checkpoint client
+    pub topdown_client: Toggle<TopdownClient>,
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -126,56 +118,12 @@ where
             CheckpointPoolItem::BottomUp(ckpt) => ChainMessage::Ipc(IpcMessage::BottomUpExec(ckpt)),
         });
 
-        // Prepare top down proposals.
-        // Before we try to find a quorum, pause incoming votes. This is optional but if there are lots of votes coming in it might hold up proposals.
-        atomically(|| {
-            chain_env
-                .parent_finality_votes
-                .pause_votes_until_find_quorum()
-        })
-        .await;
-
-        // The pre-requisite for proposal is that there is a quorum of gossiped votes at that height.
-        // The final proposal can be at most as high as the quorum, but can be less if we have already,
-        // hit some limits such as how many blocks we can propose in a single step.
-        let finalities = atomically(|| {
-            let parent = chain_env.parent_finality_provider.next_proposal()?;
-            let quorum = chain_env
-                .parent_finality_votes
-                .find_quorum()?
-                .map(|(height, block_hash)| IPCParentFinality { height, block_hash });
-
-            Ok((parent, quorum))
-        })
-        .await;
-
-        let maybe_finality = match finalities {
-            (Some(parent), Some(quorum)) => Some(if parent.height <= quorum.height {
-                parent
-            } else {
-                quorum
-            }),
-            (Some(parent), None) => {
-                emit!(
-                    DEBUG,
-                    ParentFinalityMissingQuorum {
-                        block_height: parent.height,
-                        block_hash: &hex::encode(&parent.block_hash),
-                    }
-                );
-                None
+        match chain_env.topdown_client.find_topdown_proposal().await {
+            Ok(Some(p)) => msgs.push(ChainMessage::Ipc(IpcMessage::TopDownExec(p))),
+            Ok(None) => {}
+            Err(e) => {
+                tracing::error!(err = e.to_string(), "cannot find topdown proposal");
             }
-            (None, _) => {
-                // This is normal, the parent probably hasn't produced a block yet.
-                None
-            }
-        };
-
-        if let Some(finality) = maybe_finality {
-            msgs.push(ChainMessage::Ipc(IpcMessage::TopDownExec(ParentFinality {
-                height: finality.height as ChainEpoch,
-                block_hash: finality.block_hash,
-            })))
         }
 
         // Append at the end - if we run out of block space, these are going to be reproposed in the next block.
@@ -212,19 +160,16 @@ where
                         return Ok(false);
                     }
                 }
-                ChainMessage::Ipc(IpcMessage::TopDownExec(ParentFinality {
-                    height,
-                    block_hash,
-                })) => {
-                    let prop = IPCParentFinality {
-                        height: height as u64,
-                        block_hash,
-                    };
-                    let is_final =
-                        atomically(|| chain_env.parent_finality_provider.check_proposal(&prop))
-                            .await;
-                    if !is_final {
-                        return Ok(false);
+                ChainMessage::Ipc(IpcMessage::TopDownExec(p)) => {
+                    let proposal_height = p.cert.payload().parent_height();
+                    match chain_env.topdown_client.validate_quorum_proposal(p).await {
+                        Ok(_) => {
+                            tracing::info!(proposal_height, "validated quorum proposal");
+                        }
+                        Err(e) => {
+                            tracing::error!(err = e.to_string(), "cannot validate quorum proposal");
+                            return Ok(false);
+                        }
                     }
                 }
                 ChainMessage::Signed(signed) => {
@@ -308,57 +253,32 @@ where
                     todo!("#197: implement BottomUp checkpoint execution")
                 }
                 IpcMessage::TopDownExec(p) => {
-                    if !env.parent_finality_provider.is_enabled() {
-                        bail!("cannot execute IPC top-down message: parent provider disabled");
-                    }
-
-                    // commit parent finality first
-                    let finality = IPCParentFinality::new(p.height, p.block_hash);
+                    let checkpoint = Checkpoint::from(p.cert.payload());
                     tracing::debug!(
-                        finality = finality.to_string(),
+                        checkpoint = checkpoint.to_string(),
                         "chain interpreter received topdown exec proposal",
                     );
 
-                    let (prev_height, prev_finality) = topdown::commit_finality(
+                    let prev_checkpoint = topdown::commit_checkpoint(
                         &self.gateway_caller,
                         &mut state,
-                        finality.clone(),
-                        &env.parent_finality_provider,
+                        checkpoint.clone(),
                     )
                     .await
                     .context("failed to commit finality")?;
 
                     tracing::debug!(
-                        previous_committed_height = prev_height,
-                        previous_committed_finality = prev_finality
+                        previous_committed_finality = prev_checkpoint
                             .as_ref()
                             .map(|f| format!("{f}"))
                             .unwrap_or_else(|| String::from("None")),
                         "chain interpreter committed topdown finality",
                     );
 
-                    // The height range we pull top-down effects from. This _includes_ the proposed
-                    // finality, as we assume that the interface we query publishes only fully
-                    // executed blocks as the head of the chain. This is certainly the case for
-                    // Ethereum-compatible JSON-RPC APIs, like Filecoin's. It should be the case
-                    // too for future Filecoin light clients.
-                    //
-                    // Another factor to take into account is the chain_head_delay, which must be
-                    // non-zero. So even in the case where deferred execution leaks through our
-                    // query mechanism, it should not be problematic because we're guaranteed to
-                    // be _at least_ 1 height behind.
-                    let (execution_fr, execution_to) = (prev_height + 1, finality.height);
-
                     // error happens if we cannot get the validator set from ipc agent after retries
-                    let validator_changes = env
-                        .parent_finality_provider
-                        .validator_changes_from(execution_fr, execution_to)
-                        .await
-                        .context("failed to fetch validator changes")?;
+                    let validator_changes = p.effects.1;
 
                     tracing::debug!(
-                        from = execution_fr,
-                        to = execution_to,
                         msgs = validator_changes.len(),
                         "chain interpreter received total validator changes"
                     );
@@ -367,17 +287,10 @@ where
                         .store_validator_changes(&mut state, validator_changes)
                         .context("failed to store validator changes")?;
 
-                    // error happens if we cannot get the cross messages from ipc agent after retries
-                    let msgs = env
-                        .parent_finality_provider
-                        .top_down_msgs_from(execution_fr, execution_to)
-                        .await
-                        .context("failed to fetch top down messages")?;
+                    let msgs = p.effects.0;
 
                     tracing::debug!(
                         number_of_messages = msgs.len(),
-                        start = execution_fr,
-                        end = execution_to,
                         "chain interpreter received topdown msgs",
                     );
 
@@ -387,30 +300,13 @@ where
 
                     tracing::debug!("chain interpreter applied topdown msgs");
 
-                    let local_block_height = state.block_height() as u64;
-                    let proposer = state
-                        .block_producer()
-                        .map(|id| hex::encode(id.serialize_compressed()));
-                    let proposer_ref = proposer.as_deref();
-
-                    atomically(|| {
-                        env.parent_finality_provider
-                            .set_new_finality(finality.clone(), prev_finality.clone())?;
-
-                        env.parent_finality_votes.set_finalized(
-                            finality.height,
-                            finality.block_hash.clone(),
-                            proposer_ref,
-                            Some(local_block_height),
-                        )?;
-
-                        Ok(())
-                    })
-                    .await;
+                    env.topdown_client
+                        .parent_finalized(checkpoint.clone())
+                        .await?;
 
                     tracing::debug!(
-                        finality = finality.to_string(),
-                        "chain interpreter has set new"
+                        checkpoint = checkpoint.to_string(),
+                        "chain interpreter has set new topdown checkpoint"
                     );
 
                     Ok(((env, state), ChainMessageApplyRet::Ipc(ret)))
@@ -440,17 +336,13 @@ where
                 .0
                 .iter()
                 .map(|v| {
-                    let vk = ValidatorKey::from(v.public_key.0);
+                    let vk = ValidatorKey::new(v.public_key.0);
                     let w = v.power.0;
                     (vk, w)
                 })
                 .collect::<Vec<_>>();
 
-            atomically(|| {
-                env.parent_finality_votes
-                    .update_power_table(power_updates.clone())
-            })
-            .await;
+            env.topdown_client.update_power_table(power_updates).await?;
         }
 
         Ok(((env, state), out))

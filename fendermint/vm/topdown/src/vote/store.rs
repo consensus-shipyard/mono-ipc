@@ -6,6 +6,7 @@ use crate::vote::error::Error;
 use crate::vote::payload::{PowerTable, Vote};
 use crate::vote::Weight;
 use crate::BlockHeight;
+use fendermint_crypto::quorum::ECDSACertificate;
 use fendermint_vm_genesis::ValidatorKey;
 use std::collections::btree_map::Entry;
 use std::collections::{BTreeMap, HashMap};
@@ -83,11 +84,15 @@ impl VoteStore for InMemoryVoteStore {
 }
 
 /// The aggregated votes  from different validators.
-pub struct VoteAgg<'a>(Vec<&'a Vote>);
+pub struct VoteAgg<'a>(HashMap<ValidatorKey, &'a Vote>);
 
 impl<'a> VoteAgg<'a> {
     pub fn new(votes: Vec<&'a Vote>) -> Self {
-        Self(votes)
+        let mut map = HashMap::new();
+        for v in votes {
+            map.insert(v.voter(), v);
+        }
+        Self(map)
     }
 
     pub fn is_empty(&self) -> bool {
@@ -95,16 +100,14 @@ impl<'a> VoteAgg<'a> {
     }
 
     pub fn into_owned(self) -> Vec<Vote> {
-        self.0.into_iter().cloned().collect()
+        self.0.into_values().cloned().collect()
     }
 
     pub fn observation_weights(&self, power_table: &PowerTable) -> Vec<(&Observation, Weight)> {
         let mut votes: Vec<(&Observation, Weight)> = Vec::new();
 
-        for v in self.0.iter() {
-            let validator = v.voter();
-
-            let power = power_table.get(&validator).cloned().unwrap_or(0);
+        for (validator, v) in self.0.iter() {
+            let power = power_table.get(validator).cloned().unwrap_or(0);
             if power == 0 {
                 continue;
             }
@@ -117,6 +120,35 @@ impl<'a> VoteAgg<'a> {
         }
 
         votes
+    }
+
+    /// Generate a cert from the ordered validator keys and the target observation as payload
+    pub fn generate_cert(
+        &self,
+        ordered_validators: Vec<(&ValidatorKey, &Weight)>,
+        observation: &Observation,
+    ) -> Result<ECDSACertificate<Observation>, Error> {
+        let mut cert = ECDSACertificate::new_of_size(observation.clone(), ordered_validators.len());
+
+        for (idx, (validator, _)) in ordered_validators.into_iter().enumerate() {
+            let Some(vote) = self.0.get(validator) else {
+                continue;
+            };
+
+            if *vote.observation() == *observation {
+                cert.set_signature(
+                    idx,
+                    validator.public_key(),
+                    vote.observation_signature().clone(),
+                )
+                .map_err(|e| {
+                    tracing::error!(err = e.to_string(), "cannot verify signature");
+                    Error::VoteCannotBeValidated
+                })?;
+            }
+        }
+
+        Ok(cert)
     }
 }
 
@@ -180,8 +212,10 @@ mod tests {
             .unwrap(),
         );
 
-        let agg = VoteAgg(votes.iter().collect());
-        let weights = agg.observation_weights(&HashMap::from_iter(powers));
+        let agg = VoteAgg(HashMap::from_iter(votes.iter().map(|v| (v.voter(), v))));
+        let mut weights = agg.observation_weights(&HashMap::from_iter(powers));
+        weights.sort_by(|a, b| a.1.cmp(&b.1));
+
         assert_eq!(weights, vec![(&observation1, 1), (&observation2, 2),])
     }
 }

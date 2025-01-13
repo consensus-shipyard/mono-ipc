@@ -7,6 +7,7 @@ use anyhow::anyhow;
 use fvm_shared::bigint::{BigInt, Integer};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
+use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -170,6 +171,20 @@ impl ValidatorKey {
 
     pub fn public_key(&self) -> &PublicKey {
         &self.0
+    }
+}
+
+impl PartialOrd for ValidatorKey {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for ValidatorKey {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0
+            .serialize_compressed()
+            .cmp(&other.0.serialize_compressed())
     }
 }
 

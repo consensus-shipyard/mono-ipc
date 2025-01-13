@@ -9,7 +9,6 @@ use crate::behaviour::{
 };
 use crate::client::Client;
 use crate::observe;
-use crate::vote_record::{SignedVoteRecord, VoteRecord};
 use anyhow::anyhow;
 use bloom::{BloomFilter, ASMS};
 use ipc_api::subnet_id::SubnetID;
@@ -35,6 +34,8 @@ use tokio::select;
 use tokio::sync::broadcast;
 use tokio::sync::mpsc;
 use tokio::sync::oneshot::{self, Sender};
+
+use crate::vote_record::SubnetVoteRecord;
 
 /// Result of attempting to resolve a CID.
 pub type ResolveResult = anyhow::Result<()>;
@@ -91,7 +92,7 @@ pub(crate) enum Request<V> {
     SetProvidedSubnets(Vec<SubnetID>),
     AddProvidedSubnet(SubnetID),
     RemoveProvidedSubnet(SubnetID),
-    PublishVote(Box<SignedVoteRecord<V>>),
+    PublishVote(Box<SubnetVoteRecord<V>>),
     PublishPreemptive(SubnetID, Vec<u8>),
     PinSubnet(SubnetID),
     UnpinSubnet(SubnetID),
@@ -105,7 +106,7 @@ pub(crate) enum Request<V> {
 #[derive(Clone, Debug)]
 pub enum Event<V> {
     /// Received a vote about in a subnet about a CID.
-    ReceivedVote(Box<VoteRecord<V>>),
+    ReceivedVote(Box<V>),
     /// Received raw pre-emptive data published to a pinned subnet.
     ReceivedPreemptive(SubnetID, Vec<u8>),
 }

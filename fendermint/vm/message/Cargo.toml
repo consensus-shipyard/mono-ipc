@@ -27,6 +27,7 @@ fvm_ipld_encoding = { workspace = true }
 ipc-api = { workspace = true }
 
 fendermint_crypto = { path = "../../crypto" }
+fendermint_vm_topdown = { path = "../../vm/topdown" }
 fendermint_vm_encoding = { path = "../encoding" }
 fendermint_vm_actor_interface = { path = "../actor_interface" }
 fendermint_testing = { path = "../../testing", optional = true }

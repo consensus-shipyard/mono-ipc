@@ -164,22 +164,13 @@ pub struct TopDownSettings {
     /// conservative and avoid other from rejecting the proposal because they don't see the
     /// height as final yet.
     pub chain_head_delay: BlockHeight,
-    /// The number of blocks on top of `chain_head_delay` to wait before proposing a height
-    /// as final on the parent chain, to avoid slight disagreements between validators whether
-    /// a block is final, or not just yet.
-    pub proposal_delay: BlockHeight,
     /// The max number of blocks one should make the topdown proposal
     pub max_proposal_range: BlockHeight,
-    /// The max number of blocks to hold in memory for parent syncer
-    pub max_cache_blocks: Option<BlockHeight>,
+    /// The max number of blocks to hold in the parent view store for topdown syncer
+    pub parent_view_store_max_blocks: Option<BlockHeight>,
     /// Parent syncing cron period, in seconds
     #[serde_as(as = "DurationSeconds<u64>")]
     pub polling_interval: Duration,
-    /// Top down exponential back off retry base
-    #[serde_as(as = "DurationSeconds<u64>")]
-    pub exponential_back_off: Duration,
-    /// The max number of retries for exponential backoff before giving up
-    pub exponential_retry_limit: usize,
     /// The parent rpc http endpoint
     pub parent_http_endpoint: Url,
     /// Timeout for calls to the parent Ethereum API.

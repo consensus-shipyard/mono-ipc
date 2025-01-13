@@ -30,7 +30,7 @@ use fvm_shared::{address::Address, ActorID};
 use ipc_api::subnet_id::SubnetID;
 use ipc_ipld_resolver::{
     Client, Config, ConnectionConfig, ContentConfig, DiscoveryConfig, Event, MembershipConfig,
-    NetworkConfig, Resolver, Service, VoteRecord,
+    NetworkConfig, Resolver, Service, SubnetVoteRecord,
 };
 use libp2p::{
     core::{
@@ -221,15 +221,16 @@ async fn single_bootstrap_publish_receive_vote() {
     tokio::time::sleep(Duration::from_secs(2)).await;
 
     // Vote on some random CID.
-    let validator_key = Keypair::generate_secp256k1();
     let cid = Cid::new_v1(IPLD_RAW, Code::Sha2_256.digest(b"foo"));
-    let vote =
-        VoteRecord::signed(&validator_key, subnet_id, TestVote(cid)).expect("failed to sign vote");
+    let vote = TestVote(cid);
 
     // Pubilish vote
     cluster.agents[0]
         .client
-        .publish_vote(vote.clone())
+        .publish_vote(SubnetVoteRecord {
+            vote: vote.clone(),
+            subnet: subnet_id.clone(),
+        })
         .expect("failed to send vote");
 
     // Receive vote.
@@ -239,7 +240,7 @@ async fn single_bootstrap_publish_receive_vote() {
         .expect("error receiving vote");
 
     if let Event::ReceivedVote(v) = event {
-        assert_eq!(&*v, vote.record());
+        assert_eq!(*v, vote);
     } else {
         panic!("unexpected {event:?}")
     }

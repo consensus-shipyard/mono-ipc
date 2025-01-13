@@ -253,8 +253,8 @@ pub trait TopDownFinalityQuery: Send + Sync {
         subnet_id: &SubnetID,
         epoch: ChainEpoch,
     ) -> Result<TopDownQueryPayload<Vec<StakingChangeRequest>>>;
-    /// Returns the latest parent finality committed in a child subnet
-    async fn latest_parent_finality(&self) -> Result<ChainEpoch>;
+    /// Returns the latest topdown checkpoint committed in a child subnet
+    async fn latest_topdown_checkpoint(&self) -> Result<ChainEpoch>;
 }
 
 /// The bottom up checkpoint manager that handles the bottom up relaying from child subnet to the parent

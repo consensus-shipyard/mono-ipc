@@ -1,1 +1,1 @@
-Ipc(TopDownExec(ParentFinality { height: 3233809629, block_hash: [150, 0, 100, 212, 209, 1, 180, 165, 12] }))
+Ipc(TopDownExec(TopdownProposal { cert: ECDSACertificate { payload: Observation { parent_subnet_height: 13195324771461439260, parent_subnet_hash: [4, 169, 119, 145, 124, 122, 114, 113, 146], cumulative_effects_comm: [189] }, signatures: [None] }, effects: ([], []) }))

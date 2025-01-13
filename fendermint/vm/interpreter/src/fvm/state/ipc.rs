@@ -18,7 +18,7 @@ use fendermint_vm_actor_interface::{
 use fendermint_vm_genesis::{Collateral, Power, PowerScale, Validator, ValidatorKey};
 use fendermint_vm_message::conv::{from_eth, from_fvm};
 use fendermint_vm_message::signed::sign_secp256k1;
-use fendermint_vm_topdown::IPCParentFinality;
+use fendermint_vm_topdown::Checkpoint;
 
 use ipc_actors_abis::checkpointing_facet::CheckpointingFacet;
 use ipc_actors_abis::gateway_getter_facet::GatewayGetterFacet;
@@ -226,23 +226,23 @@ impl<DB: Blockstore + Clone> GatewayCaller<DB> {
         Ok(calldata)
     }
 
-    /// Commit the parent finality to the gateway and returns the previously committed finality.
-    /// None implies there is no previously committed finality.
-    pub fn commit_parent_finality(
+    /// Commit the parent checkpoint to the gateway and returns the previously committed checkpoint.
+    /// None implies there is no previously committed checkpoint.
+    pub fn commit_topdown_checkpoint(
         &self,
         state: &mut FvmExecState<DB>,
-        finality: IPCParentFinality,
-    ) -> anyhow::Result<Option<IPCParentFinality>> {
-        let evm_finality = top_down_finality_facet::ParentFinality::try_from(finality)?;
+        checkpoint: Checkpoint,
+    ) -> anyhow::Result<Option<Checkpoint>> {
+        let evm_finality = top_down_finality_facet::TopdownCheckpoint::try_from(checkpoint)?;
 
-        let (has_committed, prev_finality) = self
+        let (has_committed, prev_checkpoint) = self
             .topdown
-            .call(state, |c| c.commit_parent_finality(evm_finality))?;
+            .call(state, |c| c.commit_topdown_checkpoint(evm_finality))?;
 
         Ok(if !has_committed {
             None
         } else {
-            Some(IPCParentFinality::from(prev_finality))
+            Some(Checkpoint::from(prev_checkpoint))
         })
     }
 
@@ -294,14 +294,14 @@ impl<DB: Blockstore + Clone> GatewayCaller<DB> {
         Ok(r.into_return())
     }
 
-    pub fn get_latest_parent_finality(
+    pub fn get_latest_topdown_checkpoint(
         &self,
         state: &mut FvmExecState<DB>,
-    ) -> anyhow::Result<IPCParentFinality> {
+    ) -> anyhow::Result<Checkpoint> {
         let r = self
             .getter
-            .call(state, |c| c.get_latest_parent_finality())?;
-        Ok(IPCParentFinality::from(r))
+            .call(state, |c| c.get_latest_topdown_checkpoint())?;
+        Ok(Checkpoint::from(r))
     }
 
     /// Get the Ethereum adresses of validators who signed a checkpoint.

@@ -23,4 +23,4 @@ pub use behaviour::{ContentConfig, DiscoveryConfig, MembershipConfig, NetworkCon
 pub use client::{Client, Resolver};
 pub use service::{Config, ConnectionConfig, Event, NoKnownPeers, Service};
 pub use timestamp::Timestamp;
-pub use vote_record::{ValidatorKey, VoteRecord};
+pub use vote_record::{SubnetVoteRecord, ValidatorKey};

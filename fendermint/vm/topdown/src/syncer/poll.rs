@@ -28,9 +28,9 @@ pub struct ParentPoll<P, S> {
 
 #[async_trait]
 impl<P, S> ParentPoller for ParentPoll<P, S>
-    where
-        S: ParentViewStore + Send + Sync + 'static + Clone,
-        P: Send + Sync + 'static + ParentQueryProxy,
+where
+    S: ParentViewStore + Send + Sync + 'static + Clone,
+    P: Send + Sync + 'static + ParentQueryProxy,
 {
     type Store = S;
 
@@ -118,9 +118,9 @@ impl<P, S> ParentPoller for ParentPoll<P, S>
 }
 
 impl<P, S> ParentPoll<P, S>
-    where
-        S: ParentViewStore + Send + Sync + 'static,
-        P: Send + Sync + 'static + ParentQueryProxy,
+where
+    S: ParentViewStore + Send + Sync + 'static,
+    P: Send + Sync + 'static + ParentQueryProxy,
 {
     pub fn new(config: ParentSyncerConfig, proxy: P, store: S, last_finalized: Checkpoint) -> Self {
         let (tx, _) = broadcast::channel(config.broadcast_channel_size);
@@ -273,8 +273,8 @@ async fn fetch_data<P>(
     height: BlockHeight,
     block_hash: BlockHash,
 ) -> Result<ParentBlockView, Error>
-    where
-        P: ParentQueryProxy + Send + Sync + 'static,
+where
+    P: ParentQueryProxy + Send + Sync + 'static,
 {
     let changes_res = parent_proxy
         .get_validator_changes(height)

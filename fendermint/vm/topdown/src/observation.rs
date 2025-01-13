@@ -231,7 +231,7 @@ impl LinearizedParentBlockView {
             self.cumulative_effects_comm.as_slice(),
             to_append.as_slice(),
         ]
-            .concat();
+        .concat();
         let cid = Cid::new_v1(DAG_CBOR, Code::Blake2b256.digest(&bytes));
         self.cumulative_effects_comm = cid.to_bytes();
     }

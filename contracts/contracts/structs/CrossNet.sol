@@ -9,9 +9,12 @@ uint64 constant MAX_MSGS_PER_BATCH = 10;
 uint256 constant BATCH_PERIOD = 100;
 
 /// @notice The parent finality for IPC parent at certain height.
-struct ParentFinality {
+struct TopdownCheckpoint {
     uint256 height;
     bytes32 blockHash;
+    /// The commiment of topdown effects (topdown messages + validator changes).
+    /// Current version is the CID.
+    bytes effectsCommitment;
 }
 
 /// @notice A bottom-up checkpoint type.

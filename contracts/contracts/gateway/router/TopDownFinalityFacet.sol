@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import {GatewayActorModifiers} from "../../lib/LibGatewayActorStorage.sol";
-import {ParentFinality} from "../../structs/CrossNet.sol";
+import {TopdownCheckpoint} from "../../structs/CrossNet.sol";
 import {PermissionMode, Validator, ValidatorInfo, StakingChangeRequest, Membership} from "../../structs/Subnet.sol";
 import {LibGateway} from "../../lib/LibGateway.sol";
 
@@ -16,17 +16,17 @@ contract TopDownFinalityFacet is GatewayActorModifiers {
     using LibValidatorTracking for ParentValidatorsTracker;
     using LibValidatorSet for ValidatorSet;
 
-    /// @notice commit the ipc parent finality into storage and returns the previous committed finality
-    /// This is useful to understand if the finalities are consistent or if there have been reorgs.
-    /// If there are no previous committed fainality, it will be default to zero values, i.e. zero height and block hash.
-    /// @param finality - the parent finality
-    /// @return hasCommittedBefore A flag that indicates if a finality record has been committed before.
-    /// @return previousFinality The previous finality information.
-    function commitParentFinality(
-        ParentFinality calldata finality
-    ) external systemActorOnly returns (bool hasCommittedBefore, ParentFinality memory previousFinality) {
-        previousFinality = LibGateway.commitParentFinality(finality);
-        hasCommittedBefore = previousFinality.height != 0;
+    /// @notice commit the ipc topdown checkpoint into storage and returns the previous committed checkpoint
+    /// This is useful to understand if the checkpoints are consistent or if there have been reorgs.
+    /// If there are no previous committed checkpoint, it will be default to zero values, i.e. zero height and block hash.
+    /// @param checkpoint - the topdown checkpoint
+    /// @return hasCommittedBefore A flag that indicates if a checkpoint record has been committed before.
+    /// @return previousCheckpoint The previous checkpoint information.
+    function commitTopdownCheckpoint(
+        TopdownCheckpoint calldata checkpoint
+    ) external systemActorOnly returns (bool hasCommittedBefore, TopdownCheckpoint memory previousCheckpoint) {
+        previousCheckpoint = LibGateway.commitTopdownCheckpoint(checkpoint);
+        hasCommittedBefore = previousCheckpoint.height != 0;
     }
 
     /// @notice Store the validator change requests from parent.

@@ -95,6 +95,11 @@ impl<C> Record for VoteRecord<C> {
 
 pub type SignedVoteRecord<C> = SignedRecord<VoteRecord<C>>;
 
+pub struct SubnetVoteRecord<V> {
+    pub subnet: SubnetID,
+    pub vote: V,
+}
+
 impl<C> VoteRecord<C>
 where
     C: Serialize + DeserializeOwned,

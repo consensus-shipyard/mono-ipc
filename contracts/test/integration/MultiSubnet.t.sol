@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import "forge-std/Test.sol";
 import "../../contracts/errors/IPCErrors.sol";
 import {EMPTY_BYTES, METHOD_SEND} from "../../contracts/constants/Constants.sol";
-import {IpcEnvelope, BottomUpMsgBatch, BottomUpCheckpoint, ParentFinality, IpcMsgKind, OutcomeType} from "../../contracts/structs/CrossNet.sol";
+import {IpcEnvelope, BottomUpMsgBatch, BottomUpCheckpoint, TopdownCheckpoint, IpcMsgKind, OutcomeType} from "../../contracts/structs/CrossNet.sol";
 import {FvmAddress} from "../../contracts/structs/FvmAddress.sol";
 import {SubnetID, Subnet, IPCAddress, Validator} from "../../contracts/structs/Subnet.sol";
 import {SubnetIDHelper} from "../../contracts/lib/SubnetIDHelper.sol";
@@ -164,8 +164,8 @@ contract MultiSubnetTest is Test, IntegrationTestBase {
         IpcEnvelope[] memory msgs = new IpcEnvelope[](1);
         msgs[0] = expected;
 
-        // TODO: commitParentFinality doesn't not affect anything in this test.
-        commitParentFinality(nativeSubnet.gatewayAddr);
+        // TODO: commitTopdownCheckpoint doesn't not affect anything in this test.
+        commitTopdownCheckpoint(nativeSubnet.gatewayAddr);
 
         executeTopDownMsgs(msgs, nativeSubnet.id, nativeSubnet.gateway);
 
@@ -293,8 +293,8 @@ contract MultiSubnetTest is Test, IntegrationTestBase {
         IpcEnvelope[] memory msgs = new IpcEnvelope[](1);
         msgs[0] = expected;
 
-        // TODO: commitParentFinality doesn't not affect anything in this test.
-        commitParentFinality(nativeSubnet.gatewayAddr);
+        // TODO: commitTopdownCheckpoint doesn't not affect anything in this test.
+        commitTopdownCheckpoint(nativeSubnet.gatewayAddr);
 
         vm.expectRevert();
         executeTopDownMsgsRevert(msgs, nativeSubnet.id, nativeSubnet.gateway);
@@ -330,7 +330,7 @@ contract MultiSubnetTest is Test, IntegrationTestBase {
         IpcEnvelope[] memory msgs = new IpcEnvelope[](1);
         msgs[0] = expected;
 
-        commitParentFinality(tokenSubnet.gatewayAddr);
+        commitTopdownCheckpoint(tokenSubnet.gatewayAddr);
 
         executeTopDownMsgs(msgs, tokenSubnet.id, tokenSubnet.gateway);
 
@@ -577,7 +577,7 @@ contract MultiSubnetTest is Test, IntegrationTestBase {
         IpcEnvelope[] memory msgs = new IpcEnvelope[](1);
         msgs[0] = expected;
 
-        commitParentFinality(tokenSubnet.gatewayAddr);
+        commitTopdownCheckpoint(tokenSubnet.gatewayAddr);
 
         vm.expectRevert();
         executeTopDownMsgsRevert(msgs, tokenSubnet.id, tokenSubnet.gateway);
@@ -1136,7 +1136,7 @@ contract MultiSubnetTest is Test, IntegrationTestBase {
         IpcEnvelope[] memory msgs = new IpcEnvelope[](1);
         msgs[0] = xnetCallMsg;
 
-        commitParentFinality(nativeSubnet.gatewayAddr);
+        commitTopdownCheckpoint(nativeSubnet.gatewayAddr);
         executeTopDownMsgs(msgs, nativeSubnet.id, nativeSubnet.gateway);
 
         assertEq(address(recipient).balance, amount);
@@ -1284,20 +1284,24 @@ contract MultiSubnetTest is Test, IntegrationTestBase {
         IpcEnvelope[] memory msgs = new IpcEnvelope[](1);
         msgs[0] = xnetCallMsg;
 
-        commitParentFinality(tokenSubnet.gatewayAddr);
+        commitTopdownCheckpoint(tokenSubnet.gatewayAddr);
         executeTopDownMsgs(msgs, tokenSubnet.id, tokenSubnet.gateway);
 
         assertEq(address(recipient).balance, amount);
     }
 
-    function commitParentFinality(address gateway) internal {
+    function commitTopdownCheckpoint(address gateway) internal {
         vm.roll(10);
-        ParentFinality memory finality = ParentFinality({height: block.number, blockHash: bytes32(0)});
+        TopdownCheckpoint memory finality = TopdownCheckpoint({
+            height: block.number,
+            blockHash: bytes32(0),
+            effectsCommitment: new bytes(0)
+        });
 
         TopDownFinalityFacet gwTopDownFinalityFacet = TopDownFinalityFacet(address(gateway));
 
         vm.prank(FilAddress.SYSTEM_ACTOR);
-        gwTopDownFinalityFacet.commitParentFinality(finality);
+        gwTopDownFinalityFacet.commitTopdownCheckpoint(finality);
     }
 
     function executeTopDownMsgs(IpcEnvelope[] memory msgs, SubnetID memory subnet, GatewayDiamond gw) internal {

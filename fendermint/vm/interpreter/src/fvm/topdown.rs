@@ -1,41 +1,33 @@
 // Copyright 2022-2024 Protocol Labs
 // SPDX-License-Identifier: Apache-2.0, MIT
+
 //! Topdown finality related util functions
 
-use crate::chain::TopDownFinalityProvider;
 use crate::fvm::state::ipc::GatewayCaller;
 use crate::fvm::state::FvmExecState;
 use crate::fvm::FvmApplyRet;
 use anyhow::Context;
-use fendermint_vm_topdown::{BlockHeight, IPCParentFinality, ParentViewProvider};
+use fendermint_vm_topdown::Checkpoint;
 use fvm_ipld_blockstore::Blockstore;
 use ipc_api::cross::IpcEnvelope;
 
 use super::state::ipc::tokens_to_mint;
 
-/// Commit the parent finality. Returns the height that the previous parent finality is committed and
-/// the committed finality itself. If there is no parent finality committed, genesis epoch is returned.
-pub async fn commit_finality<DB>(
+/// Commit the topdown checkpoint. Returns the height that the previous parent checkpoint is committed and
+/// the committed checkpoint itself. If there is no topdown checkpoint committed, genesis epoch is returned.
+pub async fn commit_checkpoint<DB>(
     gateway_caller: &GatewayCaller<DB>,
     state: &mut FvmExecState<DB>,
-    finality: IPCParentFinality,
-    provider: &TopDownFinalityProvider,
-) -> anyhow::Result<(BlockHeight, Option<IPCParentFinality>)>
+    checkpoint: Checkpoint,
+) -> anyhow::Result<Option<Checkpoint>>
 where
     DB: Blockstore + Sync + Send + Clone + 'static,
 {
-    let (prev_height, prev_finality) =
-        if let Some(prev_finality) = gateway_caller.commit_parent_finality(state, finality)? {
-            (prev_finality.height, Some(prev_finality))
-        } else {
-            (provider.genesis_epoch()?, None)
-        };
+    let prev_checkpoint = gateway_caller.commit_topdown_checkpoint(state, checkpoint)?;
 
-    tracing::debug!(
-        "commit finality parsed: prev_height {prev_height}, prev_finality: {prev_finality:?}"
-    );
+    tracing::debug!("commit checkpoint parsed, prev_checkpoint: {prev_checkpoint:?}");
 
-    Ok((prev_height, prev_finality))
+    Ok(prev_checkpoint)
 }
 
 /// Execute the top down messages implicitly. Before the execution, mint to the gateway of the funds

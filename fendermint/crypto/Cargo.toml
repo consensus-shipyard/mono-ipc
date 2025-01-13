@@ -16,10 +16,11 @@ rand = { workspace = true }
 zeroize = { workspace = true }
 multihash = { workspace = true, features = ["multihash-impl", "blake2b"] }
 serde = { workspace = true, optional = true }
+fvm_ipld_encoding = { workspace = true, optional = true }
+num-traits = { workspace = true }
+num-rational = { workspace = true }
 
-[dev-dependencies]
-fvm_ipld_encoding = { workspace = true }
 
 [features]
-default = ["with_serde"]
+default = ["with_serde", "fvm_ipld_encoding"]
 with_serde = ["serde"]

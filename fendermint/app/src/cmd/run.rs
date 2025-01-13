@@ -1,10 +1,13 @@
 // Copyright 2022-2024 Protocol Labs
 // SPDX-License-Identifier: Apache-2.0, MIT
 
+use crate::cmd::key::read_secret_key;
+use crate::{cmd, options::run::RunArgs, settings::Settings};
 use anyhow::{anyhow, bail, Context};
-use async_stm::atomically_or_err;
+use async_trait::async_trait;
 use fendermint_abci::ApplicationService;
-use fendermint_app::ipc::{AppParentFinalityQuery, AppVote};
+use fendermint_app::ipc::AppParentFinalityQuery;
+use fendermint_app::observe::register_metrics as register_consensus_metrics;
 use fendermint_app::{App, AppConfig, AppStore, BitswapBlockstore};
 use fendermint_app_settings::AccountKind;
 use fendermint_crypto::SecretKey;
@@ -21,26 +24,35 @@ use fendermint_vm_interpreter::{
 };
 use fendermint_vm_resolver::ipld::IpldResolver;
 use fendermint_vm_snapshot::{SnapshotManager, SnapshotParams};
+use fendermint_vm_topdown::launch::{run_topdown, Toggle};
+use fendermint_vm_topdown::observation::ObservationConfig;
 use fendermint_vm_topdown::observe::register_metrics as register_topdown_metrics;
-use fendermint_vm_topdown::proxy::{IPCProviderProxy, IPCProviderProxyWithLatency};
-use fendermint_vm_topdown::sync::launch_polling_syncer;
-use fendermint_vm_topdown::voting::{publish_vote_loop, Error as VoteError, VoteTally};
-use fendermint_vm_topdown::{CachedFinalityProvider, IPCParentFinality, Toggle};
+use fendermint_vm_topdown::proxy::{
+    IPCProviderProxy, IPCProviderProxyWithLatency, ParentQueryProxy,
+};
+use fendermint_vm_topdown::syncer::poll::ParentPoll;
+use fendermint_vm_topdown::syncer::store::{InMemoryParentViewStore, ParentViewStore};
+use fendermint_vm_topdown::syncer::{ParentPoller, ParentSyncerConfig, TopDownSyncEvent};
+use fendermint_vm_topdown::vote::error::Error;
+use fendermint_vm_topdown::vote::gossip::{GossipReceiver, GossipSender};
+use fendermint_vm_topdown::vote::payload::Vote;
+use fendermint_vm_topdown::vote::VoteConfig;
+use fendermint_vm_topdown::{Checkpoint, TopdownClient};
 use fvm_shared::address::{current_network, Address, Network};
-use ipc_ipld_resolver::{Event as ResolverEvent, VoteRecord};
+use ipc_api::subnet_id::SubnetID;
+use ipc_ipld_resolver::{Event as ResolverEvent, SubnetVoteRecord};
 use ipc_observability::observe::register_metrics as register_default_metrics;
 use ipc_provider::config::subnet::{EVMSubnet, SubnetConfig};
 use ipc_provider::IpcProvider;
 use libp2p::identity::secp256k1;
 use libp2p::identity::Keypair;
 use std::sync::Arc;
-use tokio::sync::broadcast::error::RecvError;
+use std::time::Duration;
+use tendermint_rpc::Client;
+use tokio::sync::broadcast;
+use tokio::sync::broadcast::Receiver;
 use tower::ServiceBuilder;
 use tracing::info;
-
-use crate::cmd::key::read_secret_key;
-use crate::{cmd, options::run::RunArgs, settings::Settings};
-use fendermint_app::observe::register_metrics as register_consensus_metrics;
 
 cmd! {
   RunArgs(self, settings) {
@@ -106,15 +118,7 @@ async fn run(settings: Settings) -> anyhow::Result<()> {
         }
     };
 
-    let validator_keypair = validator.as_ref().map(|(sk, _)| {
-        let mut bz = sk.serialize();
-        let sk = libp2p::identity::secp256k1::SecretKey::try_from_bytes(&mut bz)
-            .expect("secp256k1 secret key");
-        let kp = libp2p::identity::secp256k1::Keypair::from(sk);
-        libp2p::identity::Keypair::from(kp)
-    });
-
-    let validator_ctx = validator.map(|(sk, addr)| {
+    let validator_ctx = validator.clone().map(|(sk, addr)| {
         // For now we are using the validator key for submitting transactions.
         // This allows us to identify transactions coming from empowered validators, to give priority to protocol related transactions.
         let broadcaster = Broadcaster::new(
@@ -165,12 +169,9 @@ async fn run(settings: Settings) -> anyhow::Result<()> {
         NamespaceBlockstore::new(db.clone(), ns.state_store).context("error creating state DB")?;
 
     let checkpoint_pool = CheckpointPool::new();
-    let parent_finality_votes = VoteTally::empty();
-
-    let topdown_enabled = settings.topdown_enabled();
 
     // If enabled, start a resolver that communicates with the application through the resolve pool.
-    if settings.resolver_enabled() {
+    let ipld_gossip_client = if settings.resolver_enabled() {
         let mut service =
             make_resolver_service(&settings, db.clone(), state_store.clone(), ns.bit_store)?;
 
@@ -196,36 +197,13 @@ async fn run(settings: Settings) -> anyhow::Result<()> {
             own_subnet_id.clone(),
         );
 
-        if topdown_enabled {
-            if let Some(key) = validator_keypair {
-                let parent_finality_votes = parent_finality_votes.clone();
-
-                tracing::info!("starting the parent finality vote gossip loop...");
-                tokio::spawn(async move {
-                    publish_vote_loop(
-                        parent_finality_votes,
-                        settings.ipc.vote_interval,
-                        settings.ipc.vote_timeout,
-                        key,
-                        own_subnet_id,
-                        client,
-                        |height, block_hash| {
-                            AppVote::ParentFinality(IPCParentFinality { height, block_hash })
-                        },
-                    )
-                    .await
-                });
-            }
-        } else {
-            tracing::info!("parent finality vote gossip disabled");
-        }
-
-        tracing::info!("subscribing to gossip...");
+        info!("subscribing to gossip...");
         let rx = service.subscribe();
-        let parent_finality_votes = parent_finality_votes.clone();
-        tokio::spawn(async move {
-            dispatch_resolver_events(rx, parent_finality_votes, topdown_enabled).await;
-        });
+        let topdown_gossip_rx = IPLDTopdownGossipReceiver { rx };
+        let topdown_gossip_tx = IPLDTopdownGossipSender {
+            client,
+            subnet: own_subnet_id,
+        };
 
         tracing::info!("starting the IPLD Resolver Service...");
         tokio::spawn(async move {
@@ -236,40 +214,11 @@ async fn run(settings: Settings) -> anyhow::Result<()> {
 
         tracing::info!("starting the IPLD Resolver...");
         tokio::spawn(async move { resolver.run().await });
+
+        Some((topdown_gossip_tx, topdown_gossip_rx))
     } else {
-        tracing::info!("IPLD Resolver disabled.")
-    }
-
-    let (parent_finality_provider, ipc_tuple) = if topdown_enabled {
-        info!("topdown finality enabled");
-        let topdown_config = settings.ipc.topdown_config()?;
-        let mut config = fendermint_vm_topdown::Config::new(
-            topdown_config.chain_head_delay,
-            topdown_config.polling_interval,
-            topdown_config.exponential_back_off,
-            topdown_config.exponential_retry_limit,
-        )
-        .with_proposal_delay(topdown_config.proposal_delay)
-        .with_max_proposal_range(topdown_config.max_proposal_range);
-
-        if let Some(v) = topdown_config.max_cache_blocks {
-            info!(value = v, "setting max cache blocks");
-            config = config.with_max_cache_blocks(v);
-        }
-
-        let ipc_provider = {
-            let p = make_ipc_provider_proxy(&settings)?;
-            Arc::new(IPCProviderProxyWithLatency::new(p))
-        };
-
-        let finality_provider =
-            CachedFinalityProvider::uninitialized(config.clone(), ipc_provider.clone()).await?;
-
-        let p = Arc::new(Toggle::enabled(finality_provider));
-        (p, Some((ipc_provider, config)))
-    } else {
-        info!("topdown finality disabled");
-        (Arc::new(Toggle::disabled()), None)
+        tracing::info!("IPLD Resolver disabled.");
+        None
     };
 
     // Start a snapshot manager in the background.
@@ -298,7 +247,7 @@ async fn run(settings: Settings) -> anyhow::Result<()> {
         None
     };
 
-    let app: App<_, _, AppStore, _> = App::new(
+    let mut app: App<_, _, AppStore, _> = App::new(
         AppConfig {
             app_namespace: ns.app,
             state_hist_namespace: ns.state_hist,
@@ -310,29 +259,65 @@ async fn run(settings: Settings) -> anyhow::Result<()> {
         interpreter,
         ChainEnv {
             checkpoint_pool,
-            parent_finality_provider: parent_finality_provider.clone(),
-            parent_finality_votes: parent_finality_votes.clone(),
+            topdown_client: Toggle::<TopdownClient>::disable(),
         },
         snapshots,
     )?;
 
-    if let Some((agent_proxy, config)) = ipc_tuple {
+    if settings.topdown_enabled() {
+        info!("topdown finality enabled");
+
         let app_parent_finality_query = AppParentFinalityQuery::new(app.clone());
-        tokio::spawn(async move {
-            match launch_polling_syncer(
-                app_parent_finality_query,
-                config,
-                parent_finality_provider,
-                parent_finality_votes,
-                agent_proxy,
-                tendermint_client,
-            )
-            .await
-            {
-                Ok(_) => {}
-                Err(e) => tracing::error!("cannot launch polling syncer: {e}"),
-            }
-        });
+
+        let topdown_config = settings.ipc.topdown_config()?;
+        let config = fendermint_vm_topdown::Config {
+            syncer: ParentSyncerConfig {
+                request_channel_size: 1024,
+                broadcast_channel_size: 1024,
+                chain_head_delay: topdown_config.chain_head_delay,
+                polling_interval_millis: Duration::from_millis(100),
+                max_requests_per_loop: 10,
+                max_store_blocks: topdown_config.parent_view_store_max_blocks.unwrap_or(2000),
+                sync_many: true,
+                observation: ObservationConfig {
+                    max_observation_range: Some(topdown_config.max_proposal_range),
+                },
+            },
+            voting: VoteConfig {
+                req_channel_buffer_size: 1024,
+            },
+        };
+
+        let parent_proxy = Arc::new(IPCProviderProxyWithLatency::new(make_ipc_provider_proxy(
+            &settings,
+        )?));
+        let parent_view_store = InMemoryParentViewStore::new();
+
+        let gossip = ipld_gossip_client
+            .ok_or_else(|| anyhow!("topdown enabled but ipld is not, enable ipld first"))?;
+
+        let client = run_topdown(
+            parent_view_store.clone(),
+            app_parent_finality_query,
+            config,
+            validator
+                .clone()
+                .ok_or_else(|| anyhow!("need validator key to run topdown"))?
+                .0,
+            gossip,
+            parent_proxy,
+            move |checkpoint, proxy, config| {
+                let poller_inner =
+                    ParentPoll::new(config, proxy, parent_view_store, checkpoint.clone());
+                TendermintAwareParentPoller {
+                    client: tendermint_client.clone(),
+                    inner: poller_inner,
+                }
+            },
+        )
+        .await?;
+
+        app.enable_topdown(client);
     }
 
     // Start the metrics on a background thread.
@@ -406,7 +391,7 @@ fn make_resolver_service(
     db: RocksDb,
     state_store: NamespaceBlockstore,
     bit_store_ns: String,
-) -> anyhow::Result<ipc_ipld_resolver::Service<libipld::DefaultParams, AppVote>> {
+) -> anyhow::Result<ipc_ipld_resolver::Service<libipld::DefaultParams, Vote>> {
     // Blockstore for Bitswap.
     let bit_store = NamespaceBlockstore::new(db, bit_store_ns).context("error creating bit DB")?;
 
@@ -509,65 +494,85 @@ fn to_address(sk: &SecretKey, kind: &AccountKind) -> anyhow::Result<Address> {
     }
 }
 
-async fn dispatch_resolver_events(
-    mut rx: tokio::sync::broadcast::Receiver<ResolverEvent<AppVote>>,
-    parent_finality_votes: VoteTally,
-    topdown_enabled: bool,
-) {
-    loop {
-        match rx.recv().await {
-            Ok(event) => match event {
-                ResolverEvent::ReceivedPreemptive(_, _) => {}
-                ResolverEvent::ReceivedVote(vote) => {
-                    dispatch_vote(*vote, &parent_finality_votes, topdown_enabled).await;
+struct IPLDTopdownGossipSender {
+    client: ipc_ipld_resolver::Client<Vote>,
+    subnet: SubnetID,
+}
+
+struct IPLDTopdownGossipReceiver {
+    rx: broadcast::Receiver<ResolverEvent<Vote>>,
+}
+
+#[async_trait]
+impl GossipSender for IPLDTopdownGossipSender {
+    async fn publish_vote(&self, vote: Vote) -> Result<(), Error> {
+        let v = SubnetVoteRecord {
+            subnet: self.subnet.clone(),
+            vote,
+        };
+        self.client
+            .publish_vote(v)
+            .map_err(|e| Error::CannotPublishVote(e.to_string()))
+    }
+}
+
+#[async_trait]
+impl GossipReceiver for IPLDTopdownGossipReceiver {
+    async fn recv_vote(&mut self) -> Result<Vote, Error> {
+        match self.rx.recv().await {
+            Ok(v) => match v {
+                ResolverEvent::ReceivedVote(v) => Ok(*v),
+                e => {
+                    tracing::error!("unused event received");
+                    Err(Error::UnexpectedGossipEvent(format!("{e:?}")))
                 }
             },
-            Err(RecvError::Lagged(n)) => {
-                tracing::warn!("the resolver service skipped {n} gossip events")
-            }
-            Err(RecvError::Closed) => {
-                tracing::error!("the resolver service stopped receiving gossip");
-                return;
-            }
+            Err(e) => Err(Error::CannotReceiveVote(format!("{e}"))),
         }
     }
 }
 
-async fn dispatch_vote(
-    vote: VoteRecord<AppVote>,
-    parent_finality_votes: &VoteTally,
-    topdown_enabled: bool,
-) {
-    match vote.content {
-        AppVote::ParentFinality(f) => {
-            if !topdown_enabled {
-                tracing::debug!("ignoring vote; topdown disabled");
-                return;
-            }
-            let res = atomically_or_err(|| {
-                parent_finality_votes.add_vote(
-                    vote.public_key.clone(),
-                    f.height,
-                    f.block_hash.clone(),
-                )
-            })
-            .await;
+struct TendermintAwareParentPoller<P, S> {
+    client: tendermint_rpc::HttpClient,
+    inner: ParentPoll<P, S>,
+}
 
-            match res {
-                Err(e @ VoteError::Equivocation(_, _, _, _)) => {
-                    tracing::warn!(error = e.to_string(), "failed to handle vote");
-                }
-                Err(e @ (
-                      VoteError::Uninitialized // early vote, we're not ready yet
-                    | VoteError::UnpoweredValidator(_) // maybe arrived too early or too late, or spam
-                    | VoteError::UnexpectedBlock(_, _) // won't happen here
-                )) => {
-                    tracing::debug!(error = e.to_string(), "failed to handle vote");
-                }
-                _ => {
-                    tracing::debug!("vote handled");
-                }
-            };
+#[async_trait]
+impl<P, S> ParentPoller for TendermintAwareParentPoller<P, S>
+where
+    S: ParentViewStore + Send + Sync + 'static + Clone,
+    P: Send + Sync + 'static + ParentQueryProxy,
+{
+    type Store = S;
+
+    fn subscribe(&self) -> Receiver<TopDownSyncEvent> {
+        self.inner.subscribe()
+    }
+
+    fn store(&self) -> Self::Store {
+        self.inner.store()
+    }
+
+    fn finalize(&mut self, checkpoint: Checkpoint) -> anyhow::Result<()> {
+        self.inner.finalize(checkpoint)
+    }
+
+    async fn try_poll(&mut self) -> anyhow::Result<()> {
+        if self.is_syncing_peer().await? {
+            tracing::debug!("syncing with peer, skip parent finality syncing this round");
+            return Ok(());
         }
+        self.inner.try_poll().await
+    }
+}
+
+impl<P, S> TendermintAwareParentPoller<P, S> {
+    async fn is_syncing_peer(&self) -> anyhow::Result<bool> {
+        let status: tendermint_rpc::endpoint::status::Response = self
+            .client
+            .status()
+            .await
+            .context("failed to get Tendermint status")?;
+        Ok(status.sync_info.catching_up)
     }
 }
