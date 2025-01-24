@@ -3048,8 +3048,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "base64 0.21.7",
+ "fvm_ipld_encoding",
  "libsecp256k1",
+ "multihash 0.18.1",
  "rand",
+ "serde",
  "zeroize",
 ]
 
@@ -3520,6 +3523,7 @@ dependencies = [
  "ipc_actors_abis",
  "ipc_ipld_resolver",
  "libp2p",
+ "multihash 0.18.1",
  "num-traits",
  "prometheus",
  "rand",

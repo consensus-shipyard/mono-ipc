@@ -23,6 +23,7 @@ multihash = { workspace = true, optional = true }
 fvm_shared = { workspace = true }
 ipc-api = { workspace = true }
 fendermint_actor_eam = { workspace = true }
+hex = { workspace = true }
 
 fendermint_crypto = { path = "../../crypto" }
 fendermint_testing = { path = "../../testing", optional = true }
@@ -32,7 +33,6 @@ fendermint_vm_encoding = { path = "../encoding" }
 [dev-dependencies]
 quickcheck = { workspace = true }
 quickcheck_macros = { workspace = true }
-hex = { workspace = true }
 serde_json = { workspace = true }
 ipc-types = {workspace = true}
 

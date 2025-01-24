@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 use crate::sync::TopDownSyncEvent;
+use crate::vote::gossip::{GossipReceiver, GossipSender};
 use crate::vote::operation::active::ActiveOperationMode;
-use crate::vote::operation::{
-    OperationMetrics, OperationMode, OperationModeHandler, OperationStateMachine,
-};
+use crate::vote::operation::{OperationMetrics, OperationMode, OperationStateMachine};
+use crate::vote::store::VoteStore;
 use crate::vote::VotingHandler;
-use async_trait::async_trait;
 use std::fmt::{Display, Formatter};
 use tokio::select;
 
@@ -18,19 +17,19 @@ use tokio::select;
 /// Therefore, we still don’t know what the last committed topdown checkpoint is,
 /// so we refrain from watching the parent chain, and from gossiping
 /// any certified observations until we switch to active mode.
-pub(crate) struct PausedOperationMode {
-    pub(crate) metrics: OperationMetrics,
-    pub(crate) handler: VotingHandler,
+pub(crate) struct PausedOperationMode<T, S, V> {
+    pub metrics: OperationMetrics,
+    pub(crate) handler: VotingHandler<T, S, V>,
 }
 
-impl Display for PausedOperationMode {
+impl<T, S, V> Display for PausedOperationMode<T, S, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "paused")
+        write!(f, "PAUSED")
     }
 }
 
-impl PausedOperationMode {
-    fn into_active(mut self) -> OperationStateMachine {
+impl<T, S, V> PausedOperationMode<T, S, V> {
+    fn into_active(mut self) -> OperationStateMachine<T, S, V> {
         self.metrics.mode_changed(OperationMode::Active);
         OperationStateMachine::Active(ActiveOperationMode {
             metrics: self.metrics,
@@ -39,15 +38,19 @@ impl PausedOperationMode {
     }
 }
 
-#[async_trait]
-impl OperationModeHandler for PausedOperationMode {
-    async fn advance(mut self) -> OperationStateMachine {
+impl<
+        T: GossipSender + Send + Sync + 'static + Clone,
+        S: GossipReceiver + Send + Sync + 'static,
+        V: VoteStore + Send + Sync + 'static,
+    > PausedOperationMode<T, S, V>
+{
+    pub(crate) async fn advance(mut self) -> OperationStateMachine<T, S, V> {
         loop {
             select! {
                 Some(req) = self.handler.req_rx.recv() => {
-                    self.handler.handle_request(req);
+                    self.handler.handle_request(req, &self.metrics);
                 },
-                Ok(vote) = self.handler.gossip_rx.recv() => {
+                Ok(vote) = self.handler.gossip_rx.recv_vote() => {
                     self.handler.record_vote(vote);
                 },
                 Ok(event) = self.handler.internal_event_listener.recv() => {

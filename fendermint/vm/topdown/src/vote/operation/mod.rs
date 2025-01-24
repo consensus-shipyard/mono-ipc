@@ -4,11 +4,11 @@
 mod active;
 mod paused;
 
+use crate::vote::gossip::{GossipReceiver, GossipSender};
 use crate::vote::operation::active::ActiveOperationMode;
 use crate::vote::operation::paused::PausedOperationMode;
+use crate::vote::store::VoteStore;
 use crate::vote::VotingHandler;
-use async_trait::async_trait;
-use std::fmt::Display;
 
 #[repr(u8)]
 #[derive(Debug, Copy, Clone)]
@@ -37,32 +37,35 @@ pub enum OperationMode {
 ///     HardRecovery --> [*] : New checkpoints
 ///   }
 /// TODO: Soft and Hard recovery mode to be added
-pub enum OperationStateMachine {
-    Paused(PausedOperationMode),
-    Active(ActiveOperationMode),
+pub enum OperationStateMachine<T, S, V> {
+    Paused(PausedOperationMode<T, S, V>),
+    Active(ActiveOperationMode<T, S, V>),
 }
 
-/// Tracks the operation mode metrics for the voting system
-pub(crate) struct OperationMetrics {
+/// Tracks the operation mdoe metrics for the voting system
+#[derive(Clone, Debug)]
+pub struct OperationMetrics {
     current_mode: OperationMode,
     previous_mode: Option<OperationMode>,
 }
 
-#[async_trait]
-pub(crate) trait OperationModeHandler: Display {
-    async fn advance(self) -> OperationStateMachine;
-}
-
-impl OperationStateMachine {
+impl<T, S, V> OperationStateMachine<T, S, V> {
     /// Always start with Paused operation mode, one needs to know the exact status from syncer.
-    pub fn new(handler: VotingHandler) -> OperationStateMachine {
+    pub fn new(handler: VotingHandler<T, S, V>) -> OperationStateMachine<T, S, V> {
         let metrics = OperationMetrics {
             current_mode: OperationMode::Paused,
             previous_mode: None,
         };
         Self::Paused(PausedOperationMode { metrics, handler })
     }
+}
 
+impl<
+        T: GossipSender + Send + Sync + 'static + Clone,
+        S: GossipReceiver + Send + Sync + 'static,
+        V: VoteStore + Send + Sync + 'static,
+    > OperationStateMachine<T, S, V>
+{
     pub async fn step(self) -> Self {
         match self {
             OperationStateMachine::Paused(p) => p.advance().await,

@@ -14,3 +14,12 @@ anyhow = { workspace = true }
 base64 = { workspace = true }
 rand = { workspace = true }
 zeroize = { workspace = true }
+multihash = { workspace = true, features = ["multihash-impl", "blake2b"] }
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+fvm_ipld_encoding = { workspace = true }
+
+[features]
+default = ["with_serde"]
+with_serde = ["serde"]

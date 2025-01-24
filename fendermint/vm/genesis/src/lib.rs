@@ -7,6 +7,8 @@ use anyhow::anyhow;
 use fvm_shared::bigint::{BigInt, Integer};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
+use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 
 use fendermint_actor_eam::PermissionModeParams;
 use fvm_shared::chainid::ChainID;
@@ -162,6 +164,10 @@ impl ValidatorKey {
         Self(normalize_public_key(key))
     }
 
+    pub fn from_compressed_pubkey(compress: &[u8; 33]) -> anyhow::Result<Self> {
+        Ok(Self(PublicKey::parse_compressed(compress)?))
+    }
+
     pub fn public_key(&self) -> &PublicKey {
         &self.0
     }
@@ -276,6 +282,19 @@ pub mod ipc {
                 ..Default::default()
             }
         }
+    }
+}
+
+impl Display for ValidatorKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Validator({})", hex::encode(self.0.serialize()))
+    }
+}
+
+impl Hash for ValidatorKey {
+    fn hash<H: Hasher>(&self, h: &mut H) {
+        let bytes = self.0.serialize();
+        Hash::hash(&bytes, h);
     }
 }
 
