@@ -14,29 +14,32 @@ Several steps in this guide involve running long-lived processes. In each of the
 
 {% tabs %}
 {% tab title="Linux" %}
-* Install system packages: `sudo apt install build-essential clang cmake pkg-config libssl-dev protobuf-compiler git curl`.
-* Install Rust. See [instructions](https://www.rust-lang.org/tools/install).
-* Install cargo-make: `cargo install --force cargo-make`.
-* Install Docker. See [instructions](https://docs.docker.com/engine/install/ubuntu/).
-* Install Foundry. See [instructions](https://book.getfoundry.sh/getting-started/installation).
+
+- Install system packages: `sudo apt install build-essential clang cmake pkg-config libssl-dev protobuf-compiler git curl`.
+- Install Rust. See [instructions](https://www.rust-lang.org/tools/install).
+- Install cargo-make: `cargo install --force cargo-make`.
+- Install Docker. See [instructions](https://docs.docker.com/engine/install/ubuntu/).
+- Install Foundry. See [instructions](https://book.getfoundry.sh/getting-started/installation).
 
 Also install the following dependencies ([details](https://lotus.filecoin.io/lotus/install/prerequisites/#supported-platforms))
 
 ```
 sudo apt update && sudo apt install build-essential libssl-dev mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config curl clang hwloc libhwloc-dev wget ca-certificates gnupg -y
 ```
+
 {% endtab %}
 
 {% tab title="MacOS" %}
-* Install Xcode from App Store or terminal: `xcode-select --install`
-* Install Homebrew. See [instructions](https://brew.sh/).
-* Install dependencies: `brew install jq`
-* Install Rust. See [instructions](https://www.rust-lang.org/tools/install). (if you have homebrew installed rust, you may need to uninstall that if you get errors in the build)
-* Install Cargo make: `cargo install --force cargo-make`
-* Install docker. See [instructions](https://docs.docker.com/desktop/install/mac-install/).
-* Install foundry. See [instructions](https://book.getfoundry.sh/getting-started/installation).
-{% endtab %}
-{% endtabs %}
+
+- Install Xcode from App Store or terminal: `xcode-select --install`
+- Install Homebrew. See [instructions](https://brew.sh/).
+- Install dependencies: `brew install jq`
+- Install Rust. See [instructions](https://www.rust-lang.org/tools/install). (if you have homebrew installed rust, you may need to uninstall that if you get errors in the build)
+- Install Cargo make: `cargo install --force cargo-make`
+- Install docker. See [instructions](https://docs.docker.com/desktop/install/mac-install/).
+- Install foundry. See [instructions](https://book.getfoundry.sh/getting-started/installation).
+  {% endtab %}
+  {% endtabs %}
 
 #### Building:
 
@@ -46,6 +49,7 @@ NOTE: this step may take a while to compile, depending on OS version and hardwar
 
 {% tabs %}
 {% tab title="Linux" %}
+
 ```
 # make sure that rust has the wasm32 target & use stable version of rustc
 rustup target add wasm32-unknown-unknown
@@ -63,9 +67,11 @@ make
 ./target/release/ipc-cli --version
 ./target/release/fendermint --version
 ```
+
 {% endtab %}
 
 {% tab title="MacOS" %}
+
 ```
 # make sure that rust has the wasm32 target & use stable version of rustc
 rustup target add wasm32-unknown-unknown
@@ -82,19 +88,22 @@ cargo build --release
 ./target/release/ipc-cli --version
 ./target/release/fendermint --version
 ```
+
 {% endtab %}
 {% endtabs %}
 
 ### Step 2: Initialise your config
 
-* Initialise the config
+- Initialise the config
 
 {% tabs %}
 {% tab title="Linux/MacOS" %}
+
 ```
 alias ipc-cli="cargo run -q -p ipc-cli --release --"
 ipc-cli config init
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -102,7 +111,7 @@ This should have populated a default config file with all the parameters require
 
 The IPC stack is changing rapidly. To make sure you use the latest contracts deployed on Filecoin Calibration:
 
-* Run `nano ~/.ipc/config.toml` to see your configuration
+- Run `nano ~/.ipc/config.toml` to see your configuration
 
 ```
 keystore_path = "~/.ipc"
@@ -117,11 +126,47 @@ gateway_addr = "<GATEWAY_ADDR>"
 registry_addr = "<REGISTRY_ADDR>"
 ```
 
-*   **Replace** the `gateway_addr` and `registry_addr` with the following values. Click on the badges below to take you to the source to copy and paste them or go to [this link](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json).
+- **Replace** the `gateway_addr` and `registry_addr` with the following values. Click on the badges below to take you to the source to copy and paste them or go to [this link](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json).
 
-    [![Gateway Address](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fconsensus-shipyard%2Fipc%2Fcd%2Fcontracts%2Fdeployments%2Fr314159.json\&query=%24.gateway\_addr\&label=Gateway%20Address)](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json)
+  [![Gateway Address](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fconsensus-shipyard%2Fipc%2Fcd%2Fcontracts%2Fdeployments%2Fr314159.json&query=%24.gateway_addr&label=Gateway%20Address)](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json)
 
-    [![Registry Address](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fconsensus-shipyard%2Fipc%2Fcd%2Fcontracts%2Fdeployments%2Fr314159.json\&query=%24.registry\_addr\&label=Registry%20Address)](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json)
+  [![Registry Address](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fconsensus-shipyard%2Fipc%2Fcd%2Fcontracts%2Fdeployments%2Fr314159.json&query=%24.registry_addr&label=Registry%20Address)](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json)
+
+If you want to deploy your own custom ipc stack of contracts:
+
+```bash
+cd contracts
+```
+
+- Populate `.env` file with your `PRIVATE_KEY` and `RPC_URL`.
+- Set your `NETWORK` variable to `calibrationnet` value.
+
+```
+export NETWORK = calibrationnet
+```
+
+- Run the following command to deploy the contracts:
+
+```
+make deploy-stack
+```
+
+- Look for `GatewayDiamond` and `SubnetRegistryDiamond` addresses for later configuration steps.
+
+- Run `nano ~/.ipc/config.toml` to edit your configuration file. Replace the `gateway_addr` and `registry_addr` with the values you received from the `make deploy-stack` command.
+
+```
+keystore_path = "~/.ipc"
+
+[[subnets]]
+id = "/r314159"
+
+[subnets.config]
+network_type = "fevm"
+provider_http = "https://api.calibration.node.glif.io/rpc/v1"
+gateway_addr = "<GATEWAY_ADDR>"
+registry_addr = "<REGISTRY_ADDR>"
+```
 
 ### Step 3: Set up your wallets
 
@@ -131,7 +176,7 @@ Since we are setting up a subnet with multiple validators, we will create a set 
 TIP: Note down wallet and subnet addresses and keys as you go along
 {% endhint %}
 
-* Create four different wallets (we recommend a minimum of 4 for BFT security)
+- Create four different wallets (we recommend a minimum of 4 for BFT security)
 
 ```
 ipc-cli wallet new --wallet-type evm
@@ -140,13 +185,13 @@ ipc-cli wallet new --wallet-type evm
 ipc-cli wallet new --wallet-type evm
 ```
 
-* You can optionally set one of the wallets as your default so you don't have to use the `--from` flag explicitly in some of the commands:
+- You can optionally set one of the wallets as your default so you don't have to use the `--from` flag explicitly in some of the commands:
 
 ```
 ipc-cli wallet set-default --address <DEFAULT_ETH_ADDR> --wallet-type evm
 ```
 
-* Go to the [Calibration faucet](https://faucet.calibnet.chainsafe-fil.io/) and get some funds sent to each of your addresses
+- Go to the [Calibration faucet](https://faucet.calibnet.chainsafe-fil.io/) and get some funds sent to each of your addresses
 
 {% hint style="info" %}
 NOTE: you may hit faucet rate limits. In that case, wait a few minutes or continue with the guide and come back to this before step 9. Alternatively, you can send funds from your primary wallet to your owner wallets.
@@ -158,7 +203,7 @@ TIP: If you'd like to import an EVM account into Metamask, you can use export th
 
 ### Step 4: Create a child subnet
 
-* The next step is to create a subnet under `/r314159` calibration. Remember to set a default wallet or explicitly specify the wallet from which you want to perform the action with the `--from` flag.
+- The next step is to create a subnet under `/r314159` calibration. Remember to set a default wallet or explicitly specify the wallet from which you want to perform the action with the `--from` flag.
 
 ```
 ipc-cli subnet create --parent /r314159 --min-validator-stake 1 --min-validators 4 --bottomup-check-period 300 --from <PLEASE PUT ACCOUNT ADDRESS> --permission-mode collateral --supply-source-kind native
@@ -210,6 +255,24 @@ cargo make --makefile infra/fendermint/Makefile.toml \
     child-validator
 ```
 
+To start a validator with your own ipc stack, use the addresses of the previously deployed contracts in the `PARENT_GATEWAY` and `PARENT_REGISTRY` fields:
+
+```
+cargo make --makefile infra/fendermint/Makefile.toml \
+   -e NODE_NAME=validator-1 \
+   -e PRIVATE_KEY_PATH=<PLEASE PUT FULL PATH TO validator_1.sk> \
+   -e SUBNET_ID=<PLEASE PUT SUBNET ID> \
+   -e CMT_P2P_HOST_PORT=26656 \
+   -e CMT_RPC_HOST_PORT=26657 \
+   -e ETHAPI_HOST_PORT=8545 \
+   -e RESOLVER_HOST_PORT=26655 \
+   -e PARENT_GATEWAY=<PLEASE PUT GATEWAY DIAMOND ADDRESS YOU GOT FROM THE LOGS> \
+   -e PARENT_REGISTRY=<PLEASE PUT SUBNET REGISTRY DIAMOND ADDRESS YOU GOT FROM THE LOGS> \
+   -e FM_PULL_SKIP=1 \
+   child-validator
+
+```
+
 Once the first validator is up and running, it will print out the relative information for this validator.&#x20;
 
 {% hint style="info" %}
@@ -250,17 +313,18 @@ IPLD Resolver Multiaddress:
 
 You'll need the final component of the `IPLD Resolver Multiaddress` (the `peer ID`) and the `CometBFT node ID` for the next nodes to start.
 
-*   _**BOOTSTRAPS**_: \<CometBFT node ID for validator1>@validator-1-cometbft:26656
+- _**BOOTSTRAPS**_: \<CometBFT node ID for validator1>@validator-1-cometbft:26656
 
-    ```
-    // An example
-    ca644ac3194d39a2834f5d98e141d682772c149b@validator-1-cometbft:26656
-    ```
-*   _**RESOLVER\_BOOTSTRAPS**_: /dns/validator-1-fendermint/tcp/26655/p2p/\<Peer ID in IPLD Resolver Multiaddress>
+  ```
+  // An example
+  ca644ac3194d39a2834f5d98e141d682772c149b@validator-1-cometbft:26656
+  ```
 
-    <pre><code>// An example
-    <strong>/dns/validator-1-fendermint/tcp/26655/p2p/16Uiu2HAkwhrWn9hYFQMR2QmW5Ky7HJKSGVkT8xKnQr1oUGCkqWms
-    </strong></code></pre>
+- _**RESOLVER_BOOTSTRAPS**_: /dns/validator-1-fendermint/tcp/26655/p2p/\<Peer ID in IPLD Resolver Multiaddress>
+
+  <pre><code>// An example
+  <strong>/dns/validator-1-fendermint/tcp/26655/p2p/16Uiu2HAkwhrWn9hYFQMR2QmW5Ky7HJKSGVkT8xKnQr1oUGCkqWms
+  </strong></code></pre>
 
 Now, run the 2nd validator in a separate terminal.&#x20;
 
@@ -319,14 +383,14 @@ cargo make --makefile infra/fendermint/Makefile.toml \
 {% hint style="info" %}
 NOTE:
 
-* Use full path to PRIVATE\_KEY\_PATH, don't path with "\~"
-* Do not change values of any port from the ones provided unless you have to
-* If you are deploying all validators on a single server, ports will need to be different, as shown in above examples. If you are deploying them from different servers, the ports can be similar.
-{% endhint %}
+- Use full path to PRIVATE_KEY_PATH, don't path with "\~"
+- Do not change values of any port from the ones provided unless you have to
+- If you are deploying all validators on a single server, ports will need to be different, as shown in above examples. If you are deploying them from different servers, the ports can be similar.
+  {% endhint %}
 
 ### Step 7: Interact with your subnet using the IPC CLI
 
-* Make sure `~/.ipc/config.toml` contains the configuration of your subnet in the "Subnet template" section. Uncomment the section and populate the corresponding fields
+- Make sure `~/.ipc/config.toml` contains the configuration of your subnet in the "Subnet template" section. Uncomment the section and populate the corresponding fields
 
 ```
 # Subnet template - uncomment and adjust before using
@@ -344,7 +408,7 @@ registry_addr = "0x74539671a1d2f1c8f200826baba665179f53a1b7"
 NOTE: The ETH addresses for `gateway_addr` and `registry_addr` used when they are deployed in genesis in a child subnet by Fendermint are `0x77aa40b105843728088c0132e43fc44348881da8` and `0x74539671a1d2f1c8f200826baba665179f53a1b7`, respectively, so no need to change them.
 {% endhint %}
 
-* Fetch the balances of your wallets using the following command. The result should show the initial balance that you have included for your validator address in genesis:
+- Fetch the balances of your wallets using the following command. The result should show the initial balance that you have included for your validator address in genesis:
 
 ```
 ipc-cli wallet balances --wallet-type evm --subnet=<SUBNET_ID>
@@ -356,7 +420,7 @@ IPC relies on the role of a specific type of peer on the network called the rela
 
 This process is key for the commitment of child subnet checkpoints in the parent, and the execution of bottom-up cross-net messages. Without relayers, cross-net messages will only flow from top levels of the hierarchy to the bottom, but not the other way around.
 
-* Run the relayer process passing the 0x address of the submitter account:
+- Run the relayer process passing the 0x address of the submitter account:
 
 ```
 ipc-cli checkpoint relayer --subnet <SUBNET_ID> --submitter <RELAYER_ADDR>
