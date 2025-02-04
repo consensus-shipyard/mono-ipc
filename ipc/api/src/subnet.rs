@@ -7,6 +7,7 @@
 /// However, we should either deprecate the native actors, or make
 /// them use the types from this sdk directly.
 use crate::subnet_id::SubnetID;
+use anyhow::anyhow;
 use fvm_ipld_encoding::repr::*;
 use fvm_shared::{address::Address, clock::ChainEpoch, econ::TokenAmount};
 use serde::{Deserialize, Serialize};
@@ -96,4 +97,17 @@ pub struct ConstructParams {
 #[repr(u64)]
 pub enum ConsensusType {
     Fendermint,
+}
+
+impl TryFrom<u8> for PermissionMode {
+    type Error = anyhow::Error;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        Ok(match value {
+            0 => PermissionMode::Collateral,
+            1 => PermissionMode::Federated,
+            2 => PermissionMode::Static,
+            _ => return Err(anyhow!("unknown power permission mode")),
+        })
+    }
 }

@@ -235,7 +235,8 @@ pub struct GenesisFromParentArgs {
     #[arg(long, short = 'f', value_parser = parse_token_amount, default_value = "1000")]
     pub base_fee: TokenAmount,
 
-    /// Number of decimals to use during converting FIL to Power.
-    #[arg(long, default_value = "3")]
-    pub power_scale: i8,
+    /// Number of decimals to use during converting FIL to Power. Only configurable if the subnet
+    /// is collateral based.
+    #[arg(long, default_value = "Some(3)")]
+    pub power_scale: Option<i8>,
 }

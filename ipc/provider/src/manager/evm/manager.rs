@@ -761,6 +761,8 @@ impl SubnetManager for EthSubnetManager {
 
         let genesis_balances = contract.genesis_balances().await?;
         let bottom_up_checkpoint_period = contract.bottom_up_check_period().call().await?.as_u64();
+        let permission_mode =
+            PermissionMode::try_from(contract.permission_mode().call().await? as u8)?;
 
         Ok(SubnetGenesisInfo {
             // Active validators limit set for the child subnet.
@@ -776,8 +778,7 @@ impl SubnetManager for EthSubnetManager {
             // Custom message fee that the child subnet wants to set for cross-net messages
             validators: from_contract_validators(contract.genesis_validators().call().await?)?,
             genesis_balances: into_genesis_balance_map(genesis_balances.0, genesis_balances.1)?,
-            // TODO: fixme https://github.com/consensus-shipyard/ipc-monorepo/issues/496
-            permission_mode: PermissionMode::Collateral,
+            permission_mode,
             supply_source: Asset {
                 kind: AssetKind::Native,
                 token_address: None,
