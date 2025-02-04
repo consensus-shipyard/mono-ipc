@@ -3317,6 +3317,7 @@ dependencies = [
  "serial_test",
  "tempfile",
  "tendermint-rpc",
+ "text-tables",
  "tokio",
  "toml 0.8.19",
  "tracing",
@@ -9890,6 +9891,12 @@ checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
 dependencies = [
  "winapi-util",
 ]
+
+[[package]]
+name = "text-tables"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5dc41925991e82af3c3e21e25a9aad92e72930af57fbcc4b07867a18d1cd0459"
 
 [[package]]
 name = "textwrap"

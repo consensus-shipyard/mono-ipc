@@ -173,6 +173,7 @@ tracing-subscriber = { version = "0.3", features = [
   "registry",
 ] }
 tracing-appender = "0.2.3"
+text-tables = "0.3.1"
 url = { version = "2.4.1", features = ["serde"] }
 zeroize = "1.6"
 

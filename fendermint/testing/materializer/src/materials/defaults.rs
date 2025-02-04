@@ -66,7 +66,7 @@ impl Display for DefaultSubnet {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct DefaultAccount {
     name: AccountName,
     secret_key: SecretKey,

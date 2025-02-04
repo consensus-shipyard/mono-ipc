@@ -90,6 +90,7 @@ macro_rules! env_vars {
     };
 }
 
+#[derive(Debug)]
 pub struct DockerMaterials;
 
 impl Materials for DockerMaterials {
@@ -160,6 +161,7 @@ pub struct DockerMaterializerState {
     port_ranges: BTreeMap<NodeName, DockerPortRange>,
 }
 
+#[derive(Debug)]
 pub struct DockerMaterializer {
     dir: PathBuf,
     rng: StdRng,

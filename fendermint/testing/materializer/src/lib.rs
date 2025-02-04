@@ -20,6 +20,8 @@ pub mod validation;
 
 #[cfg(feature = "arb")]
 mod arb;
+pub mod bencher;
+pub mod concurrency;
 
 /// An ID identifying a resource within its parent.
 #[derive(Clone, Serialize, PartialEq, Eq, PartialOrd, Ord)]
