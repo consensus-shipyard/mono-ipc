@@ -21,6 +21,14 @@ use fendermint_vm_genesis::{Power, Validator};
 
 pub use syncer::fetch_topdown_events;
 
+#[derive(Clone)]
+pub enum TopDownSyncEvent {
+    NodeSyncing,
+    NewParentView,
+    NewParentChainHead,
+    NewProposal,
+}
+
 /// Query the parent finality from the block chain state.
 ///
 /// It returns `None` from queries until the ledger has been initialized.
