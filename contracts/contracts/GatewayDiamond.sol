@@ -11,7 +11,7 @@ import {InvalidCollateral, InvalidSubmissionPeriod, InvalidMajorityPercentage} f
 import {LibDiamond} from "./lib/LibDiamond.sol";
 import {LibGateway} from "./lib/LibGateway.sol";
 import {SubnetID} from "./structs/Subnet.sol";
-import {LibStaking} from "./lib/LibStaking.sol";
+import {LibStaking, LibValidatorSet} from "./lib/LibStaking.sol";
 import {BATCH_PERIOD, MAX_MSGS_PER_BATCH} from "./structs/CrossNet.sol";
 
 error FunctionNotFound(bytes4 _functionSelector);
@@ -73,6 +73,19 @@ contract GatewayDiamond {
         // The startConfiguration number is also 1 to match with nextConfigurationNumber, indicating we have
         // empty validator change logs
         s.validatorsTracker.changes.startConfigurationNumber = LibStaking.INITIAL_CONFIGURATION_NUMBER;
+        // Add genesis validators to the parent validators tracker.
+        uint256 vLength = params.genesisValidators.length;
+        for (uint256 i; i < vLength; ) {
+            address addr = params.genesisValidators[i].addr;
+            uint256 amount = params.genesisValidators[i].weight;
+            bytes memory metadata = params.genesisValidators[i].metadata;
+            LibValidatorSet.setMetadataFromConstructor(s.validatorsTracker.validators, addr, metadata);
+            LibValidatorSet.recordDeposit(s.validatorsTracker.validators, addr, amount);
+            LibValidatorSet.confirmDeposit(s.validatorsTracker.validators, addr, amount);
+            unchecked {
+                ++i;
+            }
+        }
         // set initial validators and update membership
         Membership memory initial = Membership({configurationNumber: 0, validators: params.genesisValidators});
         LibGateway.updateMembership(initial);

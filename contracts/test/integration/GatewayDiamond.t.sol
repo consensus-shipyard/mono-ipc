@@ -925,6 +925,11 @@ contract GatewayActorDiamondTest is Test, IntegrationTestBase, SubnetWithNativeT
     }
 
     function testGatewayDiamond_applyFinality_works() public {
+        // check membership from genesis
+        require(
+            gatewayDiamond.getter().getCurrentMembership().validators.length == 1,
+            "current membership should be 1"
+        );
         // changes included for two validators joining
         address val1 = vm.addr(100);
         address val2 = vm.addr(101);
@@ -946,8 +951,8 @@ contract GatewayActorDiamondTest is Test, IntegrationTestBase, SubnetWithNativeT
         uint64 configNumber = gatewayDiamond.topDownFinalizer().applyFinalityChanges();
         require(configNumber == 2, "wrong config number after applying finality");
         require(
-            gatewayDiamond.getter().getCurrentMembership().validators.length == 2,
-            "current membership should be 2"
+            gatewayDiamond.getter().getCurrentMembership().validators.length == 3,
+            "current membership should be 3"
         );
         require(gatewayDiamond.getter().getCurrentConfigurationNumber() == 2, "unexpected config number");
         require(gatewayDiamond.getter().getLastConfigurationNumber() == 0, "unexpected last config number");
@@ -973,10 +978,10 @@ contract GatewayActorDiamondTest is Test, IntegrationTestBase, SubnetWithNativeT
         );
         require(gatewayDiamond.getter().getCurrentConfigurationNumber() == 3, "apply result: unexpected config number");
         require(
-            gatewayDiamond.getter().getCurrentMembership().validators.length == 1,
-            "current membership should be 1"
+            gatewayDiamond.getter().getCurrentMembership().validators.length == 2,
+            "current membership should be 2"
         );
-        require(gatewayDiamond.getter().getLastMembership().validators.length == 2, "last membership should be 2");
+        require(gatewayDiamond.getter().getLastMembership().validators.length == 3, "last membership should be 3");
 
         // no changes
         configNumber = gatewayDiamond.topDownFinalizer().applyFinalityChanges();
@@ -984,10 +989,10 @@ contract GatewayActorDiamondTest is Test, IntegrationTestBase, SubnetWithNativeT
         require(gatewayDiamond.getter().getLastConfigurationNumber() == 2, "no changes: unexpected last config number");
         require(gatewayDiamond.getter().getCurrentConfigurationNumber() == 3, "no changes: unexpected config number");
         require(
-            gatewayDiamond.getter().getCurrentMembership().validators.length == 1,
-            "current membership should be 1"
+            gatewayDiamond.getter().getCurrentMembership().validators.length == 2,
+            "current membership should be 2"
         );
-        require(gatewayDiamond.getter().getLastMembership().validators.length == 2, "last membership should be 2");
+        require(gatewayDiamond.getter().getLastMembership().validators.length == 3, "last membership should be 3");
 
         vm.stopPrank();
     }

@@ -215,6 +215,11 @@ library LibValidatorSet {
         validators.validators[validator].metadata = metadata;
     }
 
+    /// @notice Set validator data using metadata from memory bytes
+    function setMetadataFromConstructor(ValidatorSet storage validators, address validator, bytes memory metadata) internal {
+        validators.validators[validator].metadata = metadata;
+    }
+
     /***********************************************************************
      * Internal helper functions, should not be called by external functions
      ***********************************************************************/
