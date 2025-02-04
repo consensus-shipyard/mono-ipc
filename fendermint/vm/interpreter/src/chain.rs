@@ -3,7 +3,6 @@
 use crate::fvm::state::ipc::GatewayCaller;
 use crate::fvm::store::ReadOnlyBlockstore;
 use crate::fvm::{topdown, EndBlockOutput, FvmApplyRet};
-use crate::selector::{GasLimitSelector, MessageSelector};
 use crate::{
     fvm::state::FvmExecState,
     fvm::FvmMessage,
@@ -17,6 +16,7 @@ use fendermint_tracing::emit;
 use fendermint_vm_actor_interface::ipc;
 use fendermint_vm_event::ParentFinalityMissingQuorum;
 use fendermint_vm_message::ipc::ParentFinality;
+use fendermint_vm_message::signed::SignedMessage;
 use fendermint_vm_message::{
     chain::ChainMessage,
     ipc::{BottomUpCheckpoint, CertifiedMessage, IpcMessage, SignedRelayedMessage},
@@ -32,6 +32,7 @@ use fvm_ipld_encoding::RawBytes;
 use fvm_shared::clock::ChainEpoch;
 use fvm_shared::econ::TokenAmount;
 use num_traits::Zero;
+use std::any::Any;
 use std::sync::Arc;
 
 /// A resolution pool for bottom-up and top-down checkpoints.
@@ -69,7 +70,7 @@ impl From<&CheckpointPoolItem> for ResolveKey {
 }
 
 /// A user sent a transaction which they are not allowed to do.
-pub struct IllegalMessage;
+pub struct IllegalMessage(pub String);
 
 // For now this is the only option, later we can expand.
 pub enum ChainMessageApplyRet {
@@ -116,7 +117,7 @@ where
         (chain_env, state): Self::State,
         mut msgs: Vec<Self::Message>,
     ) -> anyhow::Result<Vec<Self::Message>> {
-        msgs = messages_selection(msgs, &state)?;
+        msgs = select_messages(msgs, &state)?;
 
         // Collect resolved CIDs ready to be proposed from the pool.
         let ckpts = atomically(|| chain_env.checkpoint_pool.collect_resolved()).await;
@@ -190,6 +191,7 @@ where
         msgs: Vec<Self::Message>,
     ) -> anyhow::Result<bool> {
         let mut block_gas_usage = 0;
+        let gas_market = state.block_gas_tracker().current_gas_market();
 
         for msg in msgs {
             match msg {
@@ -228,6 +230,14 @@ where
                     }
                 }
                 ChainMessage::Signed(signed) => {
+                    // We do not need to check against the minimium base fee because the gas market
+                    // is guaranteed to be capped at it anyway.
+                    if !signed.includable(&gas_market.base_fee) {
+                        // We do not accept blocks containing transactions with gas parameters below the current base fee.
+                        // Producing an invalid block like this should penalize the validator going forward.
+                        return Ok(false);
+                    }
+
                     block_gas_usage += signed.message.gas_limit;
                 }
                 _ => {}
@@ -462,6 +472,7 @@ impl<I, DB> CheckInterpreter for ChainMessageInterpreter<I, DB>
 where
     DB: Blockstore + Clone + 'static + Send + Sync,
     I: CheckInterpreter<Message = VerifiableMessage, Output = SignedMessageCheckRes>,
+    I::State: Any,
 {
     type State = I::State;
     type Message = ChainMessage;
@@ -475,6 +486,25 @@ where
     ) -> anyhow::Result<(Self::State, Self::Output)> {
         match msg {
             ChainMessage::Signed(msg) => {
+                // TODO The recursive, generic Interpreter design is extremely inflexible, and ultimately useless.
+                //  We will untangle this later (see https://github.com/consensus-shipyard/ipc/issues/1241).
+                //  In the meantime we are compelled to downcast to access the actual types in use.
+                //  This check cannot be performed in the last interpreter (which has access to the FvmExecState) because
+                //  that one returns an exit code, whereas illegal messages do not lead to any execution and therefore
+                //  they do not benefit from an exit code.
+                let fvm_exec_state = (&state as &dyn Any)
+                    .downcast_ref::<FvmExecState<ReadOnlyBlockstore<DB>>>()
+                    .context("inner state not downcastable to FvmExecState")?;
+                let gas_market = fvm_exec_state.block_gas_tracker().current_gas_market();
+                if msg.message.gas_limit > gas_market.block_gas_limit
+                    || msg.message.gas_fee_cap < gas_market.min_base_fee
+                {
+                    return Ok((
+                        state,
+                        Err(IllegalMessage("unacceptable gas parameters".to_string())),
+                    ));
+                }
+
                 let (state, ret) = self
                     .inner
                     .check(state, VerifiableMessage::Signed(msg), is_recheck)
@@ -498,7 +528,10 @@ where
                     }
                     IpcMessage::TopDownExec(_) | IpcMessage::BottomUpExec(_) => {
                         // Users cannot send these messages, only validators can propose them in blocks.
-                        Ok((state, Err(IllegalMessage)))
+                        Ok((
+                            state,
+                            Err(IllegalMessage("unacceptable message type".to_string())),
+                        ))
                     }
                 }
             }
@@ -555,16 +588,16 @@ fn relayed_bottom_up_ckpt_to_fvm(
     Ok(msg)
 }
 
-/// Selects messages to be executed. Currently, this is a static function whose main purpose is to
-/// coordinate various selectors. However, it does not have formal semantics for doing so, e.g.
-/// do we daisy-chain selectors, do we parallelize, how do we treat rejections and acceptances?
-/// It hasn't been well thought out yet. When we refactor the whole *Interpreter stack, we will
-/// revisit this and make the selection function properly pluggable.
-fn messages_selection<DB: Blockstore + Clone + 'static>(
+/// Selects messages to be included in a proposal.
+/// Currently, this is a static function whose main purpose is to compose various hard-coded selectors.
+/// When we refactor the whole *Interpreter stack, we will revisit this and make the selection
+/// function properly pluggable.
+fn select_messages<DB: Blockstore + Clone + 'static>(
     msgs: Vec<ChainMessage>,
     state: &FvmExecState<DB>,
 ) -> anyhow::Result<Vec<ChainMessage>> {
-    let mut user_msgs = msgs
+    // Ensure we only have signed messages.
+    let mut signed = msgs
         .into_iter()
         .map(|msg| match msg {
             ChainMessage::Signed(inner) => Ok(inner),
@@ -572,13 +605,34 @@ fn messages_selection<DB: Blockstore + Clone + 'static>(
         })
         .collect::<anyhow::Result<Vec<_>>>()?;
 
-    // Currently only one selector, we can potentially extend to more selectors
-    // This selector enforces that the total cumulative gas limit of all messages is less than the
-    // currently active block gas limit.
-    let selectors = vec![GasLimitSelector {}];
-    for s in selectors {
-        user_msgs = s.select_messages(state, user_msgs)
+    // Shuffle the messages to prevent attackers from predicting or controlling message selection.
+    {
+        let signed = signed.as_mut_slice();
+        let mut rng = rand::thread_rng();
+        rand::seq::SliceRandom::shuffle(signed, &mut rng);
     }
 
-    Ok(user_msgs.into_iter().map(ChainMessage::Signed).collect())
+    let total_gas_limit = state.block_gas_tracker().available();
+    let gas_market = state.block_gas_tracker().current_gas_market();
+    let mut total_gas_limit_consumed = 0;
+
+    // Selector functions to compose.
+    let is_includable = |msg: &SignedMessage| msg.includable(&gas_market.base_fee);
+    let cumulative_gas_limit = |msg: &SignedMessage| {
+        let gas_limit = msg.message.gas_limit;
+        let accepted = total_gas_limit_consumed + gas_limit <= total_gas_limit;
+        if accepted {
+            total_gas_limit_consumed += gas_limit;
+        }
+        accepted
+    };
+
+    // Perform the selection.
+    let selected = signed
+        .into_iter()
+        .filter(is_includable)
+        .take_while(cumulative_gas_limit)
+        .map(ChainMessage::Signed)
+        .collect::<Vec<_>>();
+    Ok(selected)
 }

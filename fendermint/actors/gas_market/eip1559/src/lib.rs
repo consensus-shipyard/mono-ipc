@@ -97,6 +97,7 @@ impl fendermint_actors_api::gas_market::GasMarket for Actor {
         Ok(fendermint_actors_api::gas_market::Reading {
             block_gas_limit: st.constants.block_gas_limit,
             base_fee: st.base_fee,
+            min_base_fee: st.constants.minimal_base_fee,
         })
     }
 
@@ -111,6 +112,7 @@ impl fendermint_actors_api::gas_market::GasMarket for Actor {
             Ok(fendermint_actors_api::gas_market::Reading {
                 block_gas_limit: st.constants.block_gas_limit,
                 base_fee: st.base_fee.clone(),
+                min_base_fee: st.constants.minimal_base_fee.clone(),
             })
         })
     }
@@ -229,10 +231,10 @@ mod tests {
         let r = rt.call::<Actor>(
             Method::SetConstants as u64,
             IpldBlock::serialize_cbor(&Constants {
-                minimal_base_fee: Default::default(),
                 elasticity_multiplier: 0,
                 base_fee_max_change_denominator: 0,
                 block_gas_limit: 20,
+                ..Default::default()
             })
             .unwrap(),
         );
@@ -266,6 +268,7 @@ mod tests {
             .unwrap();
         let reading = r.deserialize::<Reading>().unwrap();
         assert_eq!(reading.base_fee, TokenAmount::from_atto(112));
+        assert_eq!(reading.min_base_fee, Constants::default().minimal_base_fee)
     }
 
     #[test]
@@ -292,6 +295,7 @@ mod tests {
             .unwrap();
         let reading = r.deserialize::<Reading>().unwrap();
         assert_eq!(reading.base_fee, TokenAmount::from_atto(100));
+        assert_eq!(reading.min_base_fee, Constants::default().minimal_base_fee)
     }
 
     #[test]
@@ -318,6 +322,7 @@ mod tests {
             .unwrap();
         let reading = r.deserialize::<Reading>().unwrap();
         assert_eq!(reading.base_fee, TokenAmount::from_atto(88));
+        assert_eq!(reading.min_base_fee, Constants::default().minimal_base_fee)
     }
 
     #[test]

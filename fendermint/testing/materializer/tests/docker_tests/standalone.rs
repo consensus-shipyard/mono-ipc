@@ -43,7 +43,7 @@ where
 /// from the ethereum API instance it was sent to even before it is included in the block.
 #[serial_test::serial]
 #[tokio::test]
-async fn test_sent_tx_found_in_mempool() {
+async fn test_sent_tx_found_in_mempool_and_invalid_rejected() {
     with_testnet(
         MANIFEST,
         |manifest| {
@@ -88,6 +88,16 @@ async fn test_sent_tx_found_in_mempool() {
                     Err(e) => {
                         bail!("failed to get pending transaction: {e}")
                     }
+                }
+
+                // This transaction is invalid because the gas fee cap is below the network's minimum base fee.
+                // It should be rejected at submission time via CheckTx (which will also reject it at block validation time).
+                let invalid = Eip1559TransactionRequest::new()
+                    .to(to)
+                    .max_fee_per_gas(1)
+                    .value(1);
+                if middleware.send_transaction(invalid, None).await.is_ok() {
+                    bail!("expected invalid transaction to error on submission")
                 }
 
                 Ok(())

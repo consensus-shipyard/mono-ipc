@@ -10,7 +10,6 @@ pub mod signed;
 
 #[cfg(feature = "arb")]
 mod arb;
-mod selector;
 
 /// Prepare and process transaction proposals.
 #[async_trait]

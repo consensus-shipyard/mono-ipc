@@ -14,6 +14,7 @@ use fvm_shared::address::{Address, Payload};
 use fvm_shared::chainid::ChainID;
 use fvm_shared::crypto::signature::ops::recover_secp_public_key;
 use fvm_shared::crypto::signature::{Signature, SignatureType, SECP_SIG_LEN};
+use fvm_shared::econ::TokenAmount;
 use fvm_shared::message::Message;
 use serde::{Deserialize, Serialize};
 
@@ -298,6 +299,11 @@ impl SignedMessage {
     /// Verifies that the from address of the message generated the signature.
     pub fn verify(&self, chain_id: &ChainID) -> Result<(), SignedMessageError> {
         Self::verify_signature(self.origin_kind, &self.message, &self.signature, chain_id)
+    }
+
+    /// Determines whether the message is includable in a block based on gas fees.
+    pub fn includable(&self, current_base_fee: &TokenAmount) -> bool {
+        &self.message.gas_fee_cap >= current_base_fee
     }
 
     /// Returns reference to the unsigned message.

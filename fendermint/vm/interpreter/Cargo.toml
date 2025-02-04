@@ -40,6 +40,7 @@ base64 = { workspace = true }
 ethers = { workspace = true }
 hex = { workspace = true }
 num-traits = { workspace = true }
+rand = { workspace = true }
 serde = { workspace = true }
 serde_with = { workspace = true }
 serde_json = { workspace = true }
@@ -68,7 +69,6 @@ tokio-util = { workspace = true }
 
 arbitrary = { workspace = true, optional = true }
 quickcheck = { workspace = true, optional = true }
-rand = { workspace = true, optional = true }
 
 merkle-tree-rs = { path = "../../../ext/merkle-tree-rs" }
 
@@ -93,6 +93,5 @@ arb = [
     "quickcheck",
     "fvm_shared/arb",
     "fendermint_testing/arb",
-    "rand",
 ]
 test-util = []

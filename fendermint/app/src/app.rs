@@ -651,7 +651,7 @@ where
         let response = match result {
             Err(e) => invalid_check_tx(AppError::InvalidEncoding, e.description),
             Ok(result) => match result {
-                Err(IllegalMessage) => invalid_check_tx(AppError::IllegalMessage, "".to_owned()),
+                Err(IllegalMessage(msg)) => invalid_check_tx(AppError::IllegalMessage, msg),
                 Ok(Err(InvalidSignature(d))) => invalid_check_tx(AppError::InvalidSignature, d),
                 Ok(Ok(ret)) => {
                     mpool_received_trace.message = Some(Message::from(&ret.message));

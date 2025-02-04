@@ -1,4 +1,5 @@
-.PHONY: all build test lint license check-fmt check-clippy actor-bundle
+.PHONY: all build test lint license check-fmt check-clippy actor-bundle \
+	tests-smoke tests-snapshot tests-graph tests-materializer
 
 BUILTIN_ACTORS_TAG    ?= v15.0.0
 BUILTIN_ACTORS_BUNDLE := $(PWD)/builtin-actors/output/bundle.car
@@ -49,15 +50,23 @@ test: $(BUILTIN_ACTORS_BUNDLE) $(IPC_ACTORS_GEN)
 e2e: docker-build | cargo-make
 	${MAKE} e2e-only
 
-e2e-only:
+e2e-only: tests-smoke tests-snapshot tests-graph tests-materializer
+
+tests-smoke:
 	cd testing/smoke-test    && cargo make --profile $(PROFILE)
+
+tests-snapshot:
 	cd testing/snapshot-test && cargo make --profile $(PROFILE)
+
+tests-graph:
 	cd testing/graph-test    && cargo make --profile $(PROFILE)
-ifeq ($(PROFILE), release)
-	cargo test --release --locked --package fendermint_materializer
-else
-	cargo test --locked --package fendermint_materializer
-endif
+
+tests-materializer:
+	ifeq ($(PROFILE), release)
+		cargo test --release --locked --package fendermint_materializer
+	else
+		cargo test --locked --package fendermint_materializer
+	endif
 
 clean:
 	cargo clean

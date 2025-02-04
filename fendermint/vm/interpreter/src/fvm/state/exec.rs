@@ -188,7 +188,7 @@ where
         let mut executor = DefaultExecutor::new(engine.clone(), machine)?;
 
         let block_gas_tracker = BlockGasTracker::create(&mut executor)?;
-        let base_fee = block_gas_tracker.base_fee().clone();
+        let base_fee = block_gas_tracker.current_gas_market().base_fee.clone();
 
         Ok(Self {
             executor,
