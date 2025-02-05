@@ -4,9 +4,9 @@
 [submodule "contracts/lib/forge-std"]
 	path = contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "extras/axelar-token/lib/forge-std"]
-	path = extras/axelar-token/lib/forge-std
+[submodule "demos/axelar-token/lib/forge-std"]
+	path = demos/axelar-token/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "extras/linked-token/lib/forge-std"]
-	path = extras/linked-token/lib/forge-std
+[submodule "demos/linked-token/lib/forge-std"]
+	path = demos/linked-token/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std

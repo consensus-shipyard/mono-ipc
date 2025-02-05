@@ -25,15 +25,15 @@ jobs:
         with:
           path: |
             ./contracts/out
-            ./contracts/bindings
             ./contracts/cache
+            ./crates/bindings
           key: v2-contracts-abi-${{ hashFiles('./contracts/**/*.sol') }}
 
       - name: Run tests
         run: cd contracts; make test
 
       - name: Run axelar-token tests
-        run: cd extras/axelar-token; forge test -vvv --ffi
+        run: cd demos/axelar-token; forge test -vvv --ffi
 
       - name: Run linked-token tests
-        run: cd extras/linked-token; forge test -vvv --ffi
+        run: cd demos/linked-token; forge test -vvv --ffi

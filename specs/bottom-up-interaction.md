@@ -1,7 +1,8 @@
 # Bottom Up Interactions
+
 This document takes a closer look in the IPC mechanics involved in information flowing from the child to the parent subnet, a.k.a. bottom-up.
 
-# Interactions
+## Interactions
 
 There are two user initiated interactions in IPC that result in bottom-up messages being sent:
 
@@ -10,11 +11,11 @@ There are two user initiated interactions in IPC that result in bottom-up messag
 
 The mechanism for propagating information from the child to the parent is through *checkpoints*.
 
-# Checkpoints
+## Checkpoints
 
 The epic for implementing checkpointing is [here](https://github.com/consensus-shipyard/ipc/issues/211). The end-to-end workflow can be followed on this [diagram](https://github.com/consensus-shipyard/ipc/blob/main/docs/fendermint/checkpointing.md). The IPLD Resolver docs also present a [use case](https://github.com/consensus-shipyard/ipc/blob/specs/ipld/resolver/docs/README.md#checkpointing) for checkpointing.
 
-## Contents
+### Contents
 
 The original idea for a checkpoint was to contain the following information:
 
@@ -30,7 +31,7 @@ To these would be added fields to carry the contents of the checkpoint, which wo
 
 The CID based approach would only work with Fendermint, not Lotus running on rootnet, but in general a commitment based approach can work with Lotus too.
 
-## Triggers
+### Triggers
 
 Originally checkpoints were supposed to be submitted at regular intervals, which was governed by the parameters with which the child subnet contract was created on the parent subnet, and made part of the `IpcParams` in [`genesis`](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/genesis/src/lib.rs#L227). However, this presented a problem with the number of messages that could be included in a checkpoint, which is why later the triggers for checkpoint creation were amended to be any of the following conditions:
 
@@ -44,7 +45,7 @@ One side effect of adding extra conditions is that it makes transactions irregul
 
 When the number of enqueued bottom-up messages exceeds the limit, a new message batch is created and committed at the current epoch. This will trigger a new checkpoint to be [created](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/contracts/src/lib/LibGateway.sol#L272).
 
-## Creation
+### Creation
 
 Where checkpoint creation fits into the process is explained in [IPS Spec - Executions](https://www.notion.so/IPS-Spec-Executions-ebf13d833d6845ec9c11b59bd514fcda?pvs=21).
 

@@ -53,8 +53,8 @@ jobs:
     uses: ./.github/workflows/contracts-sast.yaml
     needs: [contracts-prettier]
 
-  extras:
-    uses: ./.github/workflows/extras.yaml
+  demos:
+    uses: ./.github/workflows/demos.yaml
     needs: [contracts-prettier]
 
   build:

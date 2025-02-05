@@ -1,4 +1,4 @@
 packages:
   - 'contracts'
-  - 'extras/axelar-token'
-  - 'extras/linked-token'
+  - 'demos/axelar-token'
+  - 'demos/linked-token'

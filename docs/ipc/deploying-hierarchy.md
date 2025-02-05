@@ -46,7 +46,7 @@ make deploy-stack NETWORK=calibrationnet
 
 If the deployment is successful, you should receive an output similar to this one:
 
-```
+```raw
 $ contracts/ops/deploy.sh localnet
 [*] Deploying libraries
 [*] Output libraries available in /home/workspace/pl/ipc-solidity-actors/scripts/libraries.out

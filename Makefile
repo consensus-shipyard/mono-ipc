@@ -3,19 +3,18 @@
 
 default:
 	cd contracts && make gen
-	cargo build --release
-	./target/release/ipc-cli --version
-	./target/release/fendermint --version
+	cd crates && (cargo build --release && ./target/release/ipc-cli --version && ./target/release/fendermint --version)
 
-SUBTREES_RUST := fendermint ipc ipld/resolver
+SUBTREES_RUST := crates
 SUBTREES_CONTRACTS := contracts
 SUBTREES_ALL := $(SUBTREES_RUST) $(SUBTREES_CONTRACTS)
 
 test: test-rust test-contracts
 
-test-rust: $(patsubst %, test/%, $(SUBTREES_RUST))
+test-rust:
+	cd crates && cargo test --workspace
 
-test-contracts: $(patsubst %, test/%, $(SUBTREES_CONTRACTS))
+test-contracts: test/contracts
 
 # Using `cd` instead of `-C` so $(PWD) is correct.
 test/%:
