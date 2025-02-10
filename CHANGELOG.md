@@ -90,7 +90,7 @@ All notable changes to this project will be documented in this file.
 
 ## [axon-r05] - 2024-09-24
 
-_Full changelog below._
+*Full changelog below.*
 
 ### ⭐ HIGHLIGHT | Token-bound validator collateral 🪙🔐
 
@@ -102,11 +102,11 @@ By decoupling consensus security from the parent token, subnet operators gain gr
 
 ### 🚀 Features
 
-- _(contracts)_ Token-bound validator collateral (#1130)
+- *(contracts)* Token-bound validator collateral (#1130)
 
 ### 🐛 Bug Fixes
 
-- _(topdown)_ Pull effects up until committed finality. (#887)
+- *(topdown)* Pull effects up until committed finality. (#887)
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -114,7 +114,7 @@ By decoupling consensus security from the parent token, subnet operators gain gr
 
 ## [axon-r04] - 2024-09-18
 
-_Full changelog below._
+*Full changelog below.*
 
 ### ⭐ HIGHLIGHT | Validator Gating 🌁🌉
 
@@ -124,11 +124,11 @@ This feature is designed to support both federated and collateral-based networks
 
 ### 🚀 Features
 
-- _(contracts)_ Validator gating (#1127)
+- *(contracts)* Validator gating (#1127)
 
 ### 📚 Documentation
 
-- _(docs)_ Validator gating docs (#1127)
+- *(docs)* Validator gating docs (#1127)
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -137,7 +137,7 @@ This feature is designed to support both federated and collateral-based networks
 
 ## [axon-r03] - 2024-09-06
 
-_Full changelog below._
+*Full changelog below.*
 
 ### ⭐ HIGHLIGHT | Consistent Genesis 🧬🚀
 
@@ -145,19 +145,19 @@ The Consistent Genesis feature introduces an additional step of sealing the gene
 
 ### 🚀 Features
 
-- _(node)_ Consistent Genesis (#1016)
-- _(contracts)_ Improvements to contract deployment scripts (#1108)
+- *(node)* Consistent Genesis (#1016)
+- *(contracts)* Improvements to contract deployment scripts (#1108)
 
 ### 🐛 Bug Fixes
 
-- _(core)_ Set the default Fendermint log level to INFO (#1123)
-- _(ci)_ CI speed-up improvements (#1124)
+- *(core)* Set the default Fendermint log level to INFO (#1123)
+- *(ci)* CI speed-up improvements (#1124)
 
 ### 📚 Documentation
 
-- _(docs)_ Moved documentation to monorepo (#1014)
-- _(specs)_ Subnet Genesis v2 spec (#1113)
-- _(node)_ Updated running docs with Consistent Genesis (#1128)
+- *(docs)* Moved documentation to monorepo (#1014)
+- *(specs)* Subnet Genesis v2 spec (#1113)
+- *(node)* Updated running docs with Consistent Genesis (#1128)
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -167,7 +167,7 @@ The Consistent Genesis feature introduces an additional step of sealing the gene
 
 ## [axon-r02] - 2024-07-23
 
-_Full changelog below._
+*Full changelog below.*
 
 ### ⭐ HIGHLIGHTED | Observability Framework 👁️📊
 
@@ -202,23 +202,23 @@ Refer to full observability documentation [here](./docs/fendermint/observability
 
 ### 🚀 Features
 
-- _(node)_ New observability architecture + events (#1053)
-- _(node)_ New observability bottom up tracing/metrics (#1061)
-- _(ethapi)_ Add eth cors settings (#1021)
-- _(node)_ File-based observability configuration (#1078)
-- _(node)_ Observability docs and changelog section (#1083)
+- *(node)* New observability architecture + events (#1053)
+- *(node)* New observability bottom up tracing/metrics (#1061)
+- *(ethapi)* Add eth cors settings (#1021)
+- *(node)* File-based observability configuration (#1078)
+- *(node)* Observability docs and changelog section (#1083)
 
 ### 🐛 Bug Fixes
 
-- _(ethapi)_ Make `eth_getTransactionReceipt` null for unexecuted/unknown transactions (#1006)
+- *(ethapi)* Make `eth_getTransactionReceipt` null for unexecuted/unknown transactions (#1006)
 
 ### 🚜 Refactor
 
-- _(node)_ Observability refinements. (#1085)
+- *(node)* Observability refinements. (#1085)
 
 ### 📚 Documentation
 
-- _(specs)_ Ethereum JSON-RPC API (#913)
+- *(specs)* Ethereum JSON-RPC API (#913)
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -232,11 +232,11 @@ Hello World! It's early days for IPC. We are starting to enact a proper versioni
 
 We introduce the notion of "product generations" to represent the lifetime of IPC under each of these major architectural iterations. Product generations are named alphabetically A-Z (we certainly don't expect more than 26 generations...) We've kept the naming universe deliberately broad: entities/concepts found in biological, mathematical, or computing networks.
 
-The first product generation is called **_Axon_**!
+The first product generation is called ***Axon***!
 
 ![image](https://github.com/user-attachments/assets/7f9ac874-acdd-49d2-a409-995c55f6bfd4)
 
-Find more background on these choices / implications here: https://github.com/consensus-shipyard/ipc/issues/1012.
+Find more background on these choices / implications here: <https://github.com/consensus-shipyard/ipc/issues/1012>.
 
 ### Axon r01
 
@@ -259,6 +259,6 @@ Axon r01 supports these major features (not a comprehensive list):
 - Compatibility with the BlockScount explorer and Ethereum wallets out of the box.
 - ... and a lot more.
 
-### Join the conversation!
+### Join the conversation
 
 Come ask your questions or give us feedback in the `#ipc` channel on [Filecoin Slack](https://filecoin.io/slack).

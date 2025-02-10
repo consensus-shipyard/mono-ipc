@@ -19,8 +19,8 @@ There are a few problems associated with the above approach or the current imple
 # Phases / scope
 
 - [ ]  Milestone 1: Security-focused refactor of contracts
-    - Segregation of each `SubnetActor`
-    - Gateway performs routing of messages
+  - Segregation of each `SubnetActor`
+  - Gateway performs routing of messages
 - [ ]  Milestone 2: Generalisation of permission modes
 - [ ]  Milestone 3: Generalisation of subnet genesis
 - [ ]  Milestone 4: Subnet and gateway upgrades
@@ -54,7 +54,7 @@ interface SubnetActor {
   function genesis() external view returns(bytes memory);
 
   function powerAllocationMode() external view 
-	  returns(PowerAllocationMode memory);
+   returns(PowerAllocationMode memory);
 
   function consensus() external view returns(Consensus memory);
 
@@ -118,7 +118,7 @@ The lifecycle of a subnet happens both in the parent, i.e. through `SubnetActor`
 
 - Creation: Subnet creation is just contract deployment, which currently is handled by the subnet registry or by the subnet owner. The creation of the subnet is not a concern here.
 - Bootstrap: When the subnet has reached `PowerAllocationMode` thresholds, such as min collateral and min validator count reached, for collateral based mode. The su
-    - Then each power allocation mode should have its own implementation.
+  - Then each power allocation mode should have its own implementation.
 
 `IPC` will provide several template implementations of different permission modes.
 
@@ -138,17 +138,17 @@ interface CollateralSubnet is SubnetActor {
 
   // for join, stake, unstake, leave, kill handling of pre
   function validatorJoin(
-	  uint256 collateral,
-	  bytes publicKey
-	) external emits PowerChange[];
+   uint256 collateral,
+   bytes publicKey
+ ) external emits PowerChange[];
 
   function validatorStake(
-	  uint256 collateral
-	) external emits PowerChange[];
+   uint256 collateral
+ ) external emits PowerChange[];
 
   function validatorUnstake(
-	  uint256 collateral
-	) external emits PowerChange[];
+   uint256 collateral
+ ) external emits PowerChange[];
 
   function validatorLeave() external emits PowerChange[];
 
@@ -195,12 +195,12 @@ For topdown messages, the funds should be locked in the child subnet. For exampl
 contract SubnetActor {
 
   function fund(..., uint256 amount) {
-	  SupplySource memory s = ...;
-	  s.lock(amount);
-	  
-	  IPCEnvolope msg = ...
-	  
-	  // same as current implementation
+   SupplySource memory s = ...;
+   s.lock(amount);
+   
+   IPCEnvolope msg = ...
+   
+   // same as current implementation
     commitTopdownMsg(msg);
   }
 }

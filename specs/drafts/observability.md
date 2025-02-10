@@ -81,10 +81,10 @@ The tracing journal is configured via a `[tracing]` block within the Fendermint 
 
 Implementation note: we're not reinventing the wheel here. It’s simply an abstraction over the `tracing` library and its appenders, all of which we already use. Refs:
 
-- Tracing Appender: https://docs.rs/tracing-appender/latest/tracing_appender/rolling/
-- EnvFilter Structure: https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html
+- Tracing Appender: <https://docs.rs/tracing-appender/latest/tracing_appender/rolling/>
+- EnvFilter Structure: <https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html>
 
-For a pretty decent reference, look at the Lotus journal: https://github.com/filecoin-project/lotus/tree/master/journal. We even managed to slap an alerting system on top of it without breaking everything.
+For a pretty decent reference, look at the Lotus journal: <https://github.com/filecoin-project/lotus/tree/master/journal>. We even managed to slap an alerting system on top of it without breaking everything.
 
 ## Tracing Configuration
 
@@ -120,7 +120,7 @@ By configuring these options, you can control the behavior of metrics and tracin
 
 ## Implementation
 
-The existing metrics code paths are rather contorted and messy due to unnecessary indirection and excessive meta-programming. Read more commentary in the original pull request: https://github.com/consensus-shipyard/ipc/pull/835.
+The existing metrics code paths are rather contorted and messy due to unnecessary indirection and excessive meta-programming. Read more commentary in the original pull request: <https://github.com/consensus-shipyard/ipc/pull/835>.
 
 Take for example the `NewParentView` trace.
 

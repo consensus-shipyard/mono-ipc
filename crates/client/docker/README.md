@@ -6,11 +6,12 @@ The docker image for `fendermint` can be built with the following top-level comm
 make docker-build
 ```
 
-The image contains both the `fendermint` and `ipc-cli` executables (dispatched by [docker-entry.sh](./docker-entry.sh)), as well as all the actor bytecode that needs to be deployed at genesis inside a subnet. In other words, it's a one-stop image for everything IPC. 
+The image contains both the `fendermint` and `ipc-cli` executables (dispatched by [docker-entry.sh](./docker-entry.sh)), as well as all the actor bytecode that needs to be deployed at genesis inside a subnet. In other words, it's a one-stop image for everything IPC.
 
 ## Dependencies
 
 As a pre-requisite this will ensure that the following artifacts are prepared:
+
 * The builtin-actors bundle is downloaded from GitHub; if you upgrade the version of these, make sure you clear out any existing artifacts or you might get interface version conflicts at runtime when the bundles are loaded.
 * The custom actor bundle is built; this prepares some JSON artifacts as well, which are needed for deployment.
 * The IPC actor contract-bindings are generated; this is refreshed every time a Solidity artifact changes.
@@ -21,15 +22,15 @@ The actor bundles are CAR files which are copied into the `fendermint` image, so
 
 The full Docker build comprises two stages: the builder stage and the runner stage.
 
-- The builder stage builds Fendermint and ipc-cli. It relies on a heavier base image + dependencies required by the build.
-- The runner stage picks the executables and places them on lighter base images satisfying dynamically linked library dependencies.
+* The builder stage builds Fendermint and ipc-cli. It relies on a heavier base image + dependencies required by the build.
+* The runner stage picks the executables and places them on lighter base images satisfying dynamically linked library dependencies.
 
 ## Builder Stage
 
 For the builder stage, there are two variants of the `Dockerfile`s one of which is chosen to perform the build depending on the `PROFILE` environment variable.
 
-- `builder.ci.Dockerfile`: used only in CI when `PROFILE=ci`.
-- `builder.local.Dockerfile`: used otherwise (e.g. for local builds).
+* `builder.ci.Dockerfile`: used only in CI when `PROFILE=ci`.
+* `builder.local.Dockerfile`: used otherwise (e.g. for local builds).
 
 In both cases the final `Dockerfile` consists of a builder stage variant, joined with the `runner.Dockerfile`.
 

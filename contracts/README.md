@@ -6,9 +6,9 @@ These actors are written in Solidity and target Filecoin’s FEVM.
 
 The project accommodates the following main contracts
 
--   `GatewayDiamond.sol`: Implementation of the IPC GatewayActor within the Diamond pattern.
--   `SubnetActorDiamond.sol`: Reference implementation of an IPC SubnetActor within the Diamond pattern.
--   `SubnetRegistry.sol`: Registry contract for seamlessly deploying subnet actors.
+- `GatewayDiamond.sol`: Implementation of the IPC GatewayActor within the Diamond pattern.
+- `SubnetActorDiamond.sol`: Reference implementation of an IPC SubnetActor within the Diamond pattern.
+- `SubnetRegistry.sol`: Registry contract for seamlessly deploying subnet actors.
 
 # Documentation
 
@@ -62,19 +62,20 @@ When you run an upgrade command, the repository's scripts handle several tasks:
 To upgrade a contract, you may use the following commands.
 The NETWORK parameter is optional; if not specified, the scripts will default to "auto":
 
--   **Gateway Diamond Upgrade**:
+- **Gateway Diamond Upgrade**:
 
     ```bash
     make upgrade-gw-diamond [NETWORK=<network-name>]
     ```
 
--   **Subnet Actor Diamond Upgrade**:
+- **Subnet Actor Diamond Upgrade**:
 
     ```bash
     make upgrade-sa-diamond [NETWORK=<network-name>]
     ```
 
--   **Subnet Registry Diamond Upgrade**:
+- **Subnet Registry Diamond Upgrade**:
+
     ```bash
     make upgrade-sr-diamond [NETWORK=<network-name>]
     ```
@@ -84,10 +85,10 @@ Check the transaction on the appropriate block explorer to confirm the upgrade's
 
 ## Important Notes
 
--   The upgrade commands are intended for use by authorized personnel with a deep understanding of the contracts' functionality.
--   Ensure that your local repository is up to date with the latest contract code and JSON files before initiating an upgrade.
--   Backup all contract data and thoroughly test any new code in a controlled environment prior to an upgrade.
--   Monitor the output of the upgrade process carefully for transaction details and to verify its successful completion.
+- The upgrade commands are intended for use by authorized personnel with a deep understanding of the contracts' functionality.
+- Ensure that your local repository is up to date with the latest contract code and JSON files before initiating an upgrade.
+- Backup all contract data and thoroughly test any new code in a controlled environment prior to an upgrade.
+- Monitor the output of the upgrade process carefully for transaction details and to verify its successful completion.
 
 # Actors overview
 

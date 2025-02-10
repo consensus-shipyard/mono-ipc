@@ -1,0 +1,25 @@
+name: "Contracts: Smoke test deployment"
+
+# This workflow is triggered from the main CI workflow.
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the project
+      uses: actions/checkout@v4
+
+    - name: Lint all commonmark/markdown files
+      uses: DavidAnson/markdownlint-cli2-action@v19
+      continue-on-error: true
+      with:
+        fix: true
+        globs: '(scripts|crates)/**/README.md;contracts/**/*.md;specs/**/*.md;docs*/**/*.md'
+        separator: ';'
+    
+    - name: Check compliance
+      run: |
+        git diff --exit-code

@@ -6,7 +6,6 @@ The `fendermint_testing` crate (ie. the current directory) provides some reusabl
 * `arb`: provides `quickcheck::Arbitrary` instances for some things which are problematic in the FVM library, such as `Address` and `TokenAmount`.
 * `smt`: small framework for State Machine Testing (a.k.a. Model Testing)
 
-
 # End to end tests
 
 Beyond this, for no other reason than code organisation, the directory has sub-projects, which contain actual tests.

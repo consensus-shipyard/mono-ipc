@@ -19,10 +19,10 @@ As described above, we can interact with Fendermint through the CometBFT or the 
 For the former we can use the [`tendermint-rs`](https://github.com/informalsystems/tendermint-rs/tree/main/rpc) library, which contains a JSON-RPC client. This client forms the basis of our own `[fendermint_rpc](https://github.com/consensus-shipyard/ipc/tree/specs/fendermint/rpc)` crate, which contains the following abstractions:
 
 - `MessageFactory` and `SignedMessageFactory` to produce `ChainMessage` instances to be sent to using the following methods, bound to a particular account address and maintaining a `sequence`:
-    - `transaction` constructs generic `Message` instances using `RawBytes` and `MethodNum`
-    - `transfer` fills in the defaults for just sending tokens between native accounts
-    - `fevm_create` fills in some defaults for deploying EVM bytecode, such as the address of the EAM actor, and takes care of correctly serializing the request
-    - `fevm_invoke` fills in the defaults and serializes the calldata for invoking an EVM smart contract
+  - `transaction` constructs generic `Message` instances using `RawBytes` and `MethodNum`
+  - `transfer` fills in the defaults for just sending tokens between native accounts
+  - `fevm_create` fills in some defaults for deploying EVM bytecode, such as the address of the EAM actor, and takes care of correctly serializing the request
+  - `fevm_invoke` fills in the defaults and serializes the calldata for invoking an EVM smart contract
 - The `[response](https://github.com/consensus-shipyard/ipc/blob/specs/fendermint/rpc/src/response.rs)` module has some helper methods for decoding various responses from CometBFT, dealing with idiosyncrasies of Base64 encoding
 - `TxClient` is an interface with methods to actually perform the actions in the `MessageFactory`
 - `QueryClient` is an interface with methods corresponding to the `FvmQuery` variants, taking care of performing the query and decoding the results

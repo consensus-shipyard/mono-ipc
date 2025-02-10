@@ -64,7 +64,7 @@ The Validator Gater feature supports two primary modes of operation:
 
 In a federated network, the gater contract can directly manage validator power using the `setFederatedPower` method. This method is typically used when validator power is explicitly set by a central authority or policy.
 
-#### Example Command:
+#### Example Command
 
 ```bash
 ipc-cli subnet set-federated-power
@@ -76,7 +76,7 @@ This allows for centralized control over which validators participate and with w
 
 For networks operating in collateral-based mode, the Validator Gater contract will intercept validator actions such as joining the network, staking, unstaking, and leaving.
 
-#### Example Commands:
+#### Example Commands
 
 ```bash
 ipc-cli subnet join

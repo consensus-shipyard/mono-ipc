@@ -7,6 +7,7 @@ In this document, we describe how IPC achieves full upgradability of all its com
 # IPC Actor upgrades
 
 The on-chain logic for IPC is implemented in two contracts, the IPC gateway and the subnet actor, as well as an auxiliary contract use for UX purposes, the registry.
+
 - The gateway is a singleton actor that lives in every IPC subnet and implements the common logic for IPC. It is responsible for managing the collateral of subnet, enforcing the firewall requirement, and the cross-net interactions.
 - The subnet actor is a user-defined actor that implements the specific logic of a subnet. This contract is deployed in the parent from which the child subnet wants to be deployed. There is one subnet-actor for each child subnet in the parent.
 - The subnet registry behaves as a subnet actor factory that offers users a convenient way of deploying instances of the reference implementation of the subnet actor in a network.
@@ -104,13 +105,13 @@ pub struct Upgrade {
 ```
 
 Fields:
+
 - `chain_id`: The chain id the upgrade should be applied to.
 - `block_height`: The block height where the upgrade should be applied to and the `migration` function executed.
 - `new_app_version`: Indicates a new application protocol version if the upgrade introduces backward-incompatible changes.
 - `migration`: The migration function that is executed when applying the upgrade. The migration function is passed the `FvmExecState` which gives access to the `state_tree`, `block_store`, ability to send messages and more.
 
 Fendermint supports scheduling multiple upgrades through its `UpgradeScheduler` API which is defined as follows:
-
 
 ```rust
 struct UpgradeKey(ChainID, BlockHeight);
@@ -219,4 +220,3 @@ halt_height = 0
 #### 5. Start the new Fendermint version
 
 We can now start the new version of Fendermint which contains the upgrade we need.
-

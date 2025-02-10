@@ -15,7 +15,7 @@ IPC uses the [Filecoin Virtual Machine (FVM)](https://docs.filecoin.io/smart-con
 * Extending chain-specific syscalls once IPC supports more root chains. Because other chains may have their own special syscalls different as Filecoin (proof validation, etc.).
 * Extending features to support better development tools. E.g. adding special debugging syscalls, adding randomness syscalls, and supporting more ECC curve, etc.
 
-## Pre-requisite knowledge for tutorial:
+## Pre-requisite knowledge for tutorial
 
 * [ref-fvm](https://github.com/filecoin-project/ref-fvm)
 * [fvm syscall APIs](https://docs.rs/fvm\_sdk/latest/fvm\_sdk/sys/index.html)
@@ -34,7 +34,7 @@ TIP: For clarity, the instructions may have skipped certain files (like long `Ca
 ### **1. Define the custom syscall**
 
 * In this example, we will be creating a simple syscall which accesses the filesystem. Inside syscalls, you can run external processes, link to rust libraries, access network, call other syscalls, etc.
-*   We’ll call this new syscall `my_custom_syscall`and its defined as follows:
+* We’ll call this new syscall `my_custom_syscall`and its defined as follows:
 
     ```rust
     pub trait CustomKernel: Kernel {
@@ -43,7 +43,7 @@ TIP: For clarity, the instructions may have skipped certain files (like long `Ca
     ```
 
     [fendermint/vm/interpreter/src/fvm/examples/mycustomkernel.rs#L23](https://github.com/consensus-shipyard/ipc/blob/98497363a10e08236325e6d5c52755b9fcd52958/fendermint/vm/interpreter/src/fvm/examples/mycustomkernel.rs#L23)
-*   Define a struct `CustomKernelImpl` which extends `DefaultKernel` . We use the `ambassador` crate to automatically delegate calls which reduces the boilerplate code we need to write. Here we simply delegate all calls to existing syscall to the `DefaultKernel`.
+* Define a struct `CustomKernelImpl` which extends `DefaultKernel` . We use the `ambassador` crate to automatically delegate calls which reduces the boilerplate code we need to write. Here we simply delegate all calls to existing syscall to the `DefaultKernel`.
 
     ```rust
     #[derive(Delegate)]
@@ -65,7 +65,7 @@ TIP: For clarity, the instructions may have skipped certain files (like long `Ca
 
 ### **2. Implementing all necessary functions for the syscall**
 
-*   Implement `my_custom_syscall`
+* Implement `my_custom_syscall`
 
     Here is where we implement our custom syscall:
 
@@ -166,11 +166,11 @@ where
         + MessageOps
         + NetworkOps
         + RandomnessOps
-        + SelfOps,	
+        + SelfOps, 
 {
-	fn link_syscalls(linker: &#x26;mut Linker&#x3C;K>) -> anyhow::Result&#x3C;()> {
+ fn link_syscalls(linker: &#x26;mut Linker&#x3C;K>) -> anyhow::Result&#x3C;()> {
         DefaultKernel::&#x3C;K::CallManager>::link_syscalls(linker)?;
-				
+    
         linker.link_syscall("my_custom_kernel", "my_custom_syscall", my_custom_syscall)?;
 
         Ok(())
@@ -211,8 +211,7 @@ executor: DefaultExecutor<CustomKernelImpl<DefaultCallManager<DefaultMachine<DB,
 
 ### **6. Use syscall in your IPC subnet**
 
-*   Now, we are all set to use the custom syscall in the IPC subnet. The custom syscall can be called in IPC actors to utilize the extended feature. For this tutorial, we can create a simple actor to demonstrate how to import and call the custom syscall and then confirm that its working correctly.
-
+* Now, we are all set to use the custom syscall in the IPC subnet. The custom syscall can be called in IPC actors to utilize the extended feature. For this tutorial, we can create a simple actor to demonstrate how to import and call the custom syscall and then confirm that its working correctly.
 
 * Let’s create a `customsyscall` folder in `ipc/fendermint/actors/` and then create a file called [actor.rs](https://github.com/consensus-shipyard/ipc/blob/98497363a10e08236325e6d5c52755b9fcd52958/fendermint/actors/customsyscall/src/actor.rs) in that new folder. Here we want to create a very simple actor, which when invoked (received a message on its Invoke method) will call the new syscall and return its value:
 

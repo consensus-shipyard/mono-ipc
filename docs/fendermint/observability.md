@@ -423,7 +423,7 @@ enabled = true
 
 > 🚧 Note: the event journal and general logs are currently output to the same file.
 > We plan to segregate in the near future so that the event journal has its dedicated file.
-> See this issue: https://github.com/consensus-shipyard/ipc/issues/1084.
+> See this issue: <https://github.com/consensus-shipyard/ipc/issues/1084>.
 
 Tracing can also be configured via the configuration file for Fendermint. You can set the tracing level and specify whether to log to console or file.
 

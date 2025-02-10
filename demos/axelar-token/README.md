@@ -53,15 +53,19 @@ For more information, refer to the [Axelar docs](https://docs.axelar.dev/dev/sen
 1. Copy `.env.example` to `.env`.
 2. Adjust the parameters, including the origin and destination chains, token addresses (from the Axelar deployment), and private keys.
 3. Deploy the handler contract to the destination chain. The script records the address in `out/addresses.json`, and other scripts automatically pick it up from there.
-    ```bash
-   $ make deploy-handler
-   ```
-4. Deploy the sender contract to the origin chain.
-   ```bash
-   $ make deploy-sender
-   ```
-5. Try it out. This is an interactive command.
-    ```bash
-   $ make deposit
-    ```
 
+    ```bash
+   make deploy-handler
+   ```
+
+4. Deploy the sender contract to the origin chain.
+
+   ```bash
+   make deploy-sender
+   ```
+
+5. Try it out. This is an interactive command.
+
+    ```bash
+   make deposit
+    ```

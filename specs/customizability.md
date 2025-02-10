@@ -176,7 +176,7 @@ where
         + RandomnessOps
         + SelfOps,
 {
-	fn link_syscalls(linker: &mut Linker<K>) -> anyhow::Result<()> {
+ fn link_syscalls(linker: &mut Linker<K>) -> anyhow::Result<()> {
         DefaultKernel::<K::CallManager>::link_syscalls(linker)?;
 
         linker.link_syscall("my_custom_kernel", "my_custom_syscall", my_custom_syscall)?;
@@ -292,6 +292,7 @@ pub use shared::*;
 - `fendermint/actors/src/manifest.rs`: Add your new actor in the `REQUIRED_ACTORS` array so we can confirm it was correctly bundled on IPC startup
 - `fendermint/vm/actor_interface/src/customsyscall.rs`: A macro which assigns an ID to your new actor and declares constants for accessing it by ID and Address
 - `fendermint/vm/actor_interface/src/lib.rs`: export the constants to IPC
+
 </aside>
 
 ### **7. Load and deploy actor at genesis**
@@ -330,11 +331,11 @@ The contents of the `genesis.json` file are essentially the `Genesis` structure 
 - `accounts` is a list of genesis balances, given by tokens and FVM addresses.
 - `eam_permission_mode` defines who can deploy smart contracts, which could be anyone, or a set of whitelisted addresses.
 - `ipc` is only enabled if we want Fendermint to participate in an IPC hierarchy:
-    - `gateway` defines the parameters of the IPC `Gateway` actor:
-        - `subnet_id` defines the full `SubnetID` from the root
-        - `bottom_up_check_period` is the expected checkpoint frequency for the subnet. It is important that subnet nodes create checkpoints in the ledger at the same heights; doing otherwise would be a consensus failure.
-        - `majority_percentage` is the checkpoint quorum size expressed as a number between 0 and 100; it should be at least 67 to be Byzantine fault tolerant.
-        - `active_validators_limit` is the number of validators who can participate in the subnet consensus; it is important that both the parent and the child subnet agree on this value, so they select the same top validators the same way.
+  - `gateway` defines the parameters of the IPC `Gateway` actor:
+    - `subnet_id` defines the full `SubnetID` from the root
+    - `bottom_up_check_period` is the expected checkpoint frequency for the subnet. It is important that subnet nodes create checkpoints in the ledger at the same heights; doing otherwise would be a consensus failure.
+    - `majority_percentage` is the checkpoint quorum size expressed as a number between 0 and 100; it should be at least 67 to be Byzantine fault tolerant.
+    - `active_validators_limit` is the number of validators who can participate in the subnet consensus; it is important that both the parent and the child subnet agree on this value, so they select the same top validators the same way.
 
 The `genesis.json` file is usually constructed in one of two ways:
 

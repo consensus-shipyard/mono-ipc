@@ -8,7 +8,6 @@ To implement the [architecture](./architecture.md) we intend to make use of the 
 
 That should be enough to get us started with Tendermint.
 
-
 ## Install CometBFT
 
 We will need ~~Tendermint Core~~ CometBFT running and building the blockchain, and since we don't want to fork it, we can install the pre-packaged `cometbft` binary from the [releases](https://github.com/cometbft/cometbft/releases). At the time of this writing, our target is the [v0.37.1](https://github.com/cometbft/cometbft/releases/tag/v0.37.1) release, and things should work with the `v0.37.0-rc2` version of Tendermint Core as well.
@@ -16,6 +15,7 @@ We will need ~~Tendermint Core~~ CometBFT running and building the blockchain, a
 Alternatively, we can [install](https://github.com/cometbft/cometbft/blob/main/docs/guides/install.md) the project from source. I expect to have to dig around in the source code to understand the finer nuances, so this is what I'll do. It needs `go` 1.18 or higher [installed](https://go.dev/doc/install) (check with `go version`).
 
 The following code downloads the source, checks out the branch with the necessary ABCI++ features, and installs it.
+
 ```shell
 git clone https://github.com/cometbft/cometbft.git
 cd cometbft

@@ -58,6 +58,7 @@ This command only shows subnets that have been registered to the gateway, i.e. t
 #### Create a child subnet
 
 {% code overflow="wrap" %}
+
 ```
 ipc-cli subnet create
     --parent <parent-subnet-id>
@@ -65,6 +66,7 @@ ipc-cli subnet create
     --min-validator-stake <MIN_VALIDATOR_STAK>
     --bottomup-check-period <BOTTOMUP_CHECK_PERIO>
 ```
+
 {% endcode %}
 
 This command will create a subnet and create a corresponding contract based on the parameters specified with it. Make a note of the subnet-id for the subnet just created.
@@ -78,6 +80,7 @@ $ ipc-cli subnet create --parent /r314159 --min-validators 3 --min-validator-sta
 #### Join a subnet as a validator
 
 {% code overflow="wrap" %}
+
 ```sh
 ipc-cli subnet join
     --subnet <subnet-id>
@@ -85,6 +88,7 @@ ipc-cli subnet join
     --public-key <public_key_validator_addr>
     --initial-balance <genesis-balance>
 ```
+
 {% endcode %}
 
 This command specifies the subnet to join, the amount of collateral to provide, and the public key of the `--from` address that is joining as a validator.
@@ -156,11 +160,13 @@ To inspect the changes to the power table that have been performed between two e
 ```
 ipc-cli checkpoint list-validator-changes --from-epoch=<START_EPOCH> --to-epoch=<END_EPOCH>
 ```
+
 {% endhint %}
 
 #### Transfer tokens within a subnet
 
 {% code overflow="wrap" %}
+
 ```sh
 ipc-cli subnet send-value
     --subnet <subnet-id>
@@ -168,6 +174,7 @@ ipc-cli subnet send-value
     --to <to-addr>
     <value>
 ```
+
 {% endcode %}
 
 You can use this command to send tokens between addresses of the same subnet. If `--from` is not specified, `ipc-cli` will send tokens from the default wallet address.
@@ -245,12 +252,13 @@ $ ipc-cli wallet export --wallet-type evm --address 0x406a7a1d002b71ece175cc7e06
 exported new wallet with address 0x406a7a1d002b71ece175cc7e067620ae5b58e9ec in file "/tmp/priv.key"
 ```
 
-*   Export key encoded in based64 for Fendermint
+* Export key encoded in based64 for Fendermint
 
     ```sh
     ipc-cli wallet export --wallet-type evm --address <EVM-ADDRESS> --fendermint > <OUTPUT_FILE>
     ```
-*   Export key in HEX
+
+* Export key in HEX
 
     ```sh
     ipc-cli wallet export --wallet-type evm --address <EVM-ADDRESS> --hex > <OUTPUT_FILE>

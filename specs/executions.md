@@ -114,17 +114,17 @@ Transactions are sent to `check_tx` as bytes, and are passed to the interpreter:
 
 - The `[BytesMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/bytes.rs#L215)` tries to parse the content as IPLD encoded `ChainMessage`
 - The `[ChainMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/chain.rs#L425)` inspects the type of message:
-    - `Signed` messages are forwarded to the inner interpreter
-    - `Ipc` messages are either:
-        - rejected because they are not expected to come from users, instead they would be added to proposed blocks by a validator
-        - validated as relayed bottom-up checkpoints, in which case they bear the signature of the relayer as well as the quorum from the subnet validators
+  - `Signed` messages are forwarded to the inner interpreter
+  - `Ipc` messages are either:
+    - rejected because they are not expected to come from users, instead they would be added to proposed blocks by a validator
+    - validated as relayed bottom-up checkpoints, in which case they bear the signature of the relayer as well as the quorum from the subnet validators
 - The `[SignedMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/signed.rs#L174)` validates the message signature, unless this is a re-check, in which case this has already been done before
 - The `[FvmMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/fvm/check.rs#L25)` checks that:
-    - the `from` exists as an actor
-    - its `balance` is sufficient to cover the `gas_fee_cap * gas_limit`
-    - its `sequence` is matches the one in the `Message`
-    - if the `[exec_in_check](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/app/config/default.toml#L100-L105)` setting is `true` then it also executes the message and checks that the `exit_code` is successful
-    - if all checks are passed then the `balance` and the `sequence` are modified in the state
+  - the `from` exists as an actor
+  - its `balance` is sufficient to cover the `gas_fee_cap * gas_limit`
+  - its `sequence` is matches the one in the `Message`
+  - if the `[exec_in_check](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/app/config/default.toml#L100-L105)` setting is `true` then it also executes the message and checks that the `exit_code` is successful
+  - if all checks are passed then the `balance` and the `sequence` are modified in the state
 
 `exec_in_check` is `true` by default so that we can support running queries against the `pending` state, but this creates a bottleneck in that checks will be blocked by queries acquiring an exclusive lock on the state.
 
@@ -142,8 +142,8 @@ These methods can be used to decide which transactions should appear in blocks. 
 
 - The `[BytesMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/bytes.rs#L73)` has a setting whether to pass the messages to the inner interpreter, or only prepend/append new messages returned from it; if it has to pass them then it parses them as `ChainMessage`, otherwise it just encodes the new messages as bytes on the way out. Finally it enforces are limit on the maximum number of messages that can go in a block.
 - The `[ChainMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/chain.rs#L108-L112)` consults background components it was constructed with for IPC related messages that validators can include in a block:
-    - any bottom-up checkpoints for which the CID has been successfully resolved and are ready for execution (not used at the moment)
-    - any parent subnet finality that has received a quorum in the gossiped finality votes, and are ready for execution
+  - any bottom-up checkpoints for which the CID has been successfully resolved and are ready for execution (not used at the moment)
+  - any parent subnet finality that has received a quorum in the gossiped finality votes, and are ready for execution
 
 The extra messages can be appended or prepended to the block, depending on how the interpreters are constructed. Currently it’s set to [prepend mode](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/app/src/cmd/run.rs#L147), so IPC messages take priority, but originally the idea was that we can append them, and if we hit a message size or message number limit, then these will be re-proposed in the next round.
 
@@ -153,8 +153,8 @@ The extra messages can be appended or prepended to the block, depending on how t
 
 - The `[BytesMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/bytes.rs#L127-L128)` parses the transactions and has to make a choice whether to reject blocks that contain transactions which cannot be parsed. The messages successfully parsed are forwarded to the inner interpreter. If the block were rejected then no invalid transaction appears in the final output; on the other hand if they are accepted then the proposing validator could be penalized for including them.
 - The `[ChainMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/chain.rs#L177-L178)` is concerned about whether to vote for the IPC related messages by checking that:
-    - the CID of a checkpoint in `BottomUpExec`  has been resolved (not used at the moment)
-    - the block proposed in `TopDownExec` is final on the parent chain
+  - the CID of a checkpoint in `BottomUpExec`  has been resolved (not used at the moment)
+  - the block proposed in `TopDownExec` is final on the parent chain
 
 Note that even if a particular node votes `Reject`, others can still `Accept` the block, in which case this node has no choice but to try and procure the data from the parent or child subnet, or its peers.
 
@@ -181,9 +181,9 @@ In the sections below we omit the interpreters that simply forward method calls 
 `[begin_block](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/app/src/app.rs#L693)` is the method called by CometBFT with the header of a newly finalized block; this is where we can take note of the new `timestamp`, `height` and the `block_hash` . The `App` checks if there is a `halt_height` configured (which facilitates upgrades). If not, it instantiates a new execution state and stores it in the `[exec_state](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/app/src/app.rs#L163-L164)` , which is the instance of `FvmExecState` that gets passed to the interpreters and returned in an altered state.
 
 - The `[FvmMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/fvm/exec.rs#L51)` is the only one that handles `begin`:
-    - Executes any upgrade scheduled for the current height. It is done in `begin` so that we don’t get into a situation where the transactions in the block have to be processed with old rules, and only at the `end` an upgrade is applied. Effectively the whole block is considered to be *after* the upgrade.
-    - Calls the `cron` actor with the current height (CometBFT doesn’t have null rounds, so there is no need for a backfill like in Lotus).
-    - Calls the `chainmetadata` actor with the current height and block hash, so that we can make the history available for the EVM.
+  - Executes any upgrade scheduled for the current height. It is done in `begin` so that we don’t get into a situation where the transactions in the block have to be processed with old rules, and only at the `end` an upgrade is applied. Effectively the whole block is considered to be *after* the upgrade.
+  - Calls the `cron` actor with the current height (CometBFT doesn’t have null rounds, so there is no need for a backfill like in Lotus).
+  - Calls the `chainmetadata` actor with the current height and block hash, so that we can make the history available for the EVM.
 
 ### Deliver
 
@@ -193,10 +193,10 @@ Note that the interpreters have to do the validations that `check_tx` has perfor
 
 - The `[BytesMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/bytes.rs#L177)` parses bytes into `ChainMessage`; if it fails, it could punish the validator for including them in the block.
 - The `[ChainMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/chain.rs#L242)` has more or less to do, depending on whether the message is from a user, or part of IPC:
-    - `Signed` messages are simply forwarded to the inner interpreter
-    - `BottomUpResolve` messages are synhesized into an FVM `Message` and sent to the inner interpreter which should check that the relayed bottom-up checkpoint is legit, and remember to reward the relayer later; then, it schedules the resolution of the CID of the checkpoint contents from the child subnet. This isn’t used at the moment; checkpoints are sent as full-fat transaction payloads instead.
-    - `BottomUpExec` is not yet implemented.
-    - `TopDownExec` signals that a parent subnet finality has been agreed upon by the subnet validators. The execution of it involves updating the ledger, potentially fetching any data not already in the cache, adding validator changes and executing top-down messages, finally updating the syncer and voting subsystem with the newly finalized block identity. Note that the execution of messages happens using the state, rather than forwarding to the interpreter.
+  - `Signed` messages are simply forwarded to the inner interpreter
+  - `BottomUpResolve` messages are synhesized into an FVM `Message` and sent to the inner interpreter which should check that the relayed bottom-up checkpoint is legit, and remember to reward the relayer later; then, it schedules the resolution of the CID of the checkpoint contents from the child subnet. This isn’t used at the moment; checkpoints are sent as full-fat transaction payloads instead.
+  - `BottomUpExec` is not yet implemented.
+  - `TopDownExec` signals that a parent subnet finality has been agreed upon by the subnet validators. The execution of it involves updating the ledger, potentially fetching any data not already in the cache, adding validator changes and executing top-down messages, finally updating the syncer and voting subsystem with the newly finalized block identity. Note that the execution of messages happens using the state, rather than forwarding to the interpreter.
 - The `[SignedMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/signed.rs#L132)` verifies the message signature, using the current chain ID, then forwards the `Message` without the signature.
 - The `[FvmMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/fvm/exec.rs#L147)` simply executes the `Message`.
 
@@ -206,8 +206,8 @@ Note that the interpreters have to do the validations that `check_tx` has perfor
 
 - The `[ChainMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/chain.rs#L395)` first calls the inner interpreter, then inspects the results for any power updates, and if there are some, then it updates the voting subsystem to let it know where to accept votes from. This step is here because the `ChainMessageInterpreter` receives in the `State` input a `[ChainEnv](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/chain.rs#L39-L48)` , which is a collection of components working independently in the background, using Software Transactional Memory to communicate data with the interpreter. These could technically be constructor dependencies for the interpreter, however they are instead managed by the `App` and part of the `State`, given that they are mutated during the execution - it perhaps makes it a bit easier to reason about what can change to consider them part of the state. However, these are not passed to the inner interpreter.
 - The `[FvmMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/specs/fendermint/vm/interpreter/src/fvm/exec.rs#L185)` is responsible for the checkpointing logic:
-    - If the current height is an end of an epoch, or we have enough bottom-up messages to hit a threshold, a checkpoint is created in the ledger and the previously stashed validator changes take effect, and the power updates are added to the output. This is done by all full nodes deterministically.
-    - Then, if the current node is a validator, it kicks off a background process to broadcast transactions that adds its signature to all pending checkpoints.
+  - If the current height is an end of an epoch, or we have enough bottom-up messages to hit a threshold, a checkpoint is created in the ledger and the previously stashed validator changes take effect, and the power updates are added to the output. This is done by all full nodes deterministically.
+  - Then, if the current node is a validator, it kicks off a background process to broadcast transactions that adds its signature to all pending checkpoints.
 
 ### Commit
 
@@ -239,12 +239,12 @@ The ABCI query consist of a `path` and some raw `data` bytes, which are both pas
 
 - The [`BytesMessageInterpreter`](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/bytes.rs#L252) is the only one which looks at the `path`, and if it’s `"/store"`, it interprets the `data` as a CID to be looked up in the blockstore (as per the ABCI specs). If not, it is parsed as an [`FvmQuery`](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/message/src/query.rs#L57)
 - The `[FvmMessageInterpreter](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/fvm/query.rs#L46)` is the one executing all queries:
-    - `Ipld` queries are returning raw data from the blockstore
-    - `ActorState` looks up actor by its address and returns the state (which includes the balance and its state root CID)
-    - `Call` executes a transaction in read-only mode
-    - `EstimateGas` also executes a transaction, returning the gas used
-    - `StateParams` returns things like the circulating supply of the subnet
-    - `BuiltinActors` returns the code CID of the various actors
+  - `Ipld` queries are returning raw data from the blockstore
+  - `ActorState` looks up actor by its address and returns the state (which includes the balance and its state root CID)
+  - `Call` executes a transaction in read-only mode
+  - `EstimateGas` also executes a transaction, returning the gas used
+  - `StateParams` returns things like the circulating supply of the subnet
+  - `BuiltinActors` returns the code CID of the various actors
 
 <aside>
 💡 Ideally these should also be extensible for users to add their app-specific queries.

@@ -5,6 +5,10 @@ default:
 	cd contracts && make gen
 	cd crates && (cargo build --release && ./target/release/ipc-cli --version && ./target/release/fendermint --version)
 
+# Uses 'docker' as the default container runtime.
+# Can be overwritten to 'podman' for a compatible API and potentially enhanced support
+CONTAINER_FRONTEND_BIN ?= docker
+
 SUBTREES_RUST := $(patsubst %, crates/%, $(ls -1 crates))
 SUBTREES_CONTRACTS := contracts
 SUBTREES_ALL := $(SUBTREES_RUST) $(SUBTREES_CONTRACTS)

@@ -33,6 +33,7 @@ cargo make --makefile ./infra/fendermint/Makefile.toml testnode
 It will create three docker containers (cometbft, fendermint, and eth-api).
 
 To stop run the following:
+
 ```bash
 cargo make --makefile ./infra/Makefile.toml testnode-down
 ```

@@ -35,11 +35,11 @@ In order to make sure the specified contract exists `[SupplySourceHelper#validat
 
 ### Sending funds to the subnet depending on the `SupplySource`
 
-Funds can be sent to the subnet’s receiver address using 
+Funds can be sent to the subnet’s receiver address using
 
 - `GatewayManagerFacet#fund(subnetID, to)` if the `Native` supply source is used
 - `GatewayManagerFacet#fundWithToken(subnetID, to, amount)` if the `ERC20` supply source is used
 
-`GatewayManagerFacet#fundWithToken` locks a specified amount into custody using `IERC20#safeTransferFrom`. 
+`GatewayManagerFacet#fundWithToken` locks a specified amount into custody using `IERC20#safeTransferFrom`.
 
 Both `fund` and `fundWithToken` functions commit a top-down message to be processed by the subnet in order to increase the recipient’s balance.

@@ -245,7 +245,7 @@ In order to set the address of the ValidatorRewarder at subnet creation time, yo
 flag when deploying the subnet actor:
 
 ```bash
-$ ipc-cli subnet create --validator-rewarder <YOUR REWARDER ADDRESS>
+ipc-cli subnet create --validator-rewarder <YOUR REWARDER ADDRESS>
 ```
 
 #### Example ValidatorRewarder implementations

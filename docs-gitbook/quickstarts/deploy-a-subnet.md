@@ -10,10 +10,11 @@ Several steps in this guide involve running long-lived processes. In each of the
 
 ### Step 1: Prepare your system
 
-#### Install the basic requirements for IPC:
+#### Install the basic requirements for IPC
 
 {% tabs %}
 {% tab title="Linux" %}
+
 * Install system packages: `sudo apt install build-essential clang cmake pkg-config libssl-dev protobuf-compiler git curl`.
 * Install Rust. See [instructions](https://www.rust-lang.org/tools/install).
 * Install cargo-make: `cargo install --force cargo-make`.
@@ -25,9 +26,11 @@ Also install the following dependencies ([details](https://lotus.filecoin.io/lot
 ```
 sudo apt update && sudo apt install build-essential libssl-dev mesa-opencl-icd ocl-icd-opencl-dev gcc git bzr jq pkg-config curl clang hwloc libhwloc-dev wget ca-certificates gnupg -y
 ```
+
 {% endtab %}
 
 {% tab title="MacOS" %}
+
 * Install Xcode from App Store or terminal: `xcode-select --install`
 * Install Homebrew. See [instructions](https://brew.sh/).
 * Install dependencies: `brew install jq`
@@ -38,7 +41,7 @@ sudo apt update && sudo apt install build-essential libssl-dev mesa-opencl-icd o
 {% endtab %}
 {% endtabs %}
 
-#### Building:
+#### Building
 
 {% hint style="info" %}
 NOTE: this step may take a while to compile, depending on OS version and hardware build
@@ -46,6 +49,7 @@ NOTE: this step may take a while to compile, depending on OS version and hardwar
 
 {% tabs %}
 {% tab title="Linux" %}
+
 ```
 # make sure that rust has the wasm32 target & use stable version of rustc
 rustup target add wasm32-unknown-unknown
@@ -63,9 +67,11 @@ make
 ./target/release/ipc-cli --version
 ./target/release/fendermint --version
 ```
+
 {% endtab %}
 
 {% tab title="MacOS" %}
+
 ```
 # make sure that rust has the wasm32 target & use stable version of rustc
 rustup target add wasm32-unknown-unknown
@@ -82,6 +88,7 @@ cargo build --release
 ./target/release/ipc-cli --version
 ./target/release/fendermint --version
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -91,10 +98,12 @@ cargo build --release
 
 {% tabs %}
 {% tab title="Linux/MacOS" %}
+
 ```
 alias ipc-cli="cargo run -q -p ipc-cli --release --"
 ipc-cli config init
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -117,7 +126,7 @@ gateway_addr = "<GATEWAY_ADDR>"
 registry_addr = "<REGISTRY_ADDR>"
 ```
 
-*   **Replace** the `gateway_addr` and `registry_addr` with the following values. Click on the badges below to take you to the source to copy and paste them or go to [this link](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json).
+* **Replace** the `gateway_addr` and `registry_addr` with the following values. Click on the badges below to take you to the source to copy and paste them or go to [this link](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json).
 
     [![Gateway Address](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fconsensus-shipyard%2Fipc%2Fcd%2Fcontracts%2Fdeployments%2Fr314159.json\&query=%24.gateway\_addr\&label=Gateway%20Address)](https://github.com/consensus-shipyard/ipc/blob/cd/contracts/deployments/r314159.json)
 
@@ -224,39 +233,40 @@ TIP: Highly recommend documenting that information which will be useful to boots
 #################################
 
 Subnet ID:
-	/r314159/t410f6b2qto756ox3qfoonq4ii6pdrylxwyretgpixuy
+ /r314159/t410f6b2qto756ox3qfoonq4ii6pdrylxwyretgpixuy
 
 Eth API:
-	http://0.0.0.0:8545
+ http://0.0.0.0:8545
 
 Chain ID:
-	3684170297508395
+ 3684170297508395
 
 Fendermint API:
-	http://localhost:26658
+ http://localhost:26658
 
 CometBFT API:
-	http://0.0.0.0:26657
+ http://0.0.0.0:26657
 
 CometBFT node ID:
-	ca644ac3194d39a2834f5d98e141d682772c149b
+ ca644ac3194d39a2834f5d98e141d682772c149b
 
 CometBFT P2P:
-	http://0.0.0.0:26656
+ http://0.0.0.0:26656
 
 IPLD Resolver Multiaddress:
-	/ip4/0.0.0.0/tcp/26655/p2p/16Uiu2HAkwhrWn9hYFQMR2QmW5Ky7HJKSGVkT8xKnQr1oUGCkqWms
+ /ip4/0.0.0.0/tcp/26655/p2p/16Uiu2HAkwhrWn9hYFQMR2QmW5Ky7HJKSGVkT8xKnQr1oUGCkqWms
 ```
 
 You'll need the final component of the `IPLD Resolver Multiaddress` (the `peer ID`) and the `CometBFT node ID` for the next nodes to start.
 
-*   _**BOOTSTRAPS**_: \<CometBFT node ID for validator1>@validator-1-cometbft:26656
+* _**BOOTSTRAPS**_: \<CometBFT node ID for validator1>@validator-1-cometbft:26656
 
     ```
     // An example
     ca644ac3194d39a2834f5d98e141d682772c149b@validator-1-cometbft:26656
     ```
-*   _**RESOLVER\_BOOTSTRAPS**_: /dns/validator-1-fendermint/tcp/26655/p2p/\<Peer ID in IPLD Resolver Multiaddress>
+
+* _**RESOLVER\_BOOTSTRAPS**_: /dns/validator-1-fendermint/tcp/26655/p2p/\<Peer ID in IPLD Resolver Multiaddress>
 
     <pre><code>// An example
     <strong>/dns/validator-1-fendermint/tcp/26655/p2p/16Uiu2HAkwhrWn9hYFQMR2QmW5Ky7HJKSGVkT8xKnQr1oUGCkqWms

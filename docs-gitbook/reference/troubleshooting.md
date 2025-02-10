@@ -43,8 +43,6 @@ By running `cargo tree` we saw that these dependencies were pulled in from the `
 
 <summary>Example: Failing integration tests due to local changes in ~/.cargo/registry</summary>
 
-
-
 </details>
 
 If you are seeing weird unexplained behaviour that you kind of can't wrap your head around, then you may want to delete your `~/.cargo/registry` and run `cargo build`. Here is why, you _might_ have accidentally changed some of the crates's source files that cargo is using in your project. There is no way to know if you had made any local changes to any of these crates as \`Cargo\`\` does not maintain hash of these dependencies and there is no git repo available to compare against.

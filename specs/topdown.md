@@ -3,6 +3,7 @@
 The topdown finality helps propagating the important states in the parent subnet to the child blockchain such as fund transfer and validator updates.
 
 The following data is passed:
+
 - Parent block height + block hash
 - Transactions from the parent to the child subnet
 - Validator changes from parent to the child subnet
@@ -25,8 +26,8 @@ Once enabled, the topdown finality runs in the background. From a high level poi
 - There is a [ParentSyncer](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/topdown/src/sync/syncer.rs#L24C19-L24C36) that constantly polls the parent states through RPC calls, either fetching events emitted or through getters. The `ParentSyncer` stores the pulled data in cache and publishes a vote on the latest block seen.
 - Once a quorum is formed on the blocks seen, a topdown finality proposal will be [added](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/vm/interpreter/src/chain.rs#L132) to the cometbft proposal. The proposal is just the `ParentFinality` struct shown above, i.e. a block height and the corresponding block hash.
 - Once a topdown proposal is received by each node, it will be validated against the topdown syncer cache and the RPC node if there is a cache miss. If the checks do not pass, the proposal will be rejected. The checks include:
-    - The height proposed is present in the cache or exists in the RPC node
-    - The hash matches the corresponding height’s block hash
+  - The height proposed is present in the cache or exists in the RPC node
+  - The hash matches the corresponding height’s block hash
 - Once the proposal is accepted, it will be executed. This means the topdown messages will be executed and validator changes will be stored.
 
 All nodes must agree on the parent state, even though they may be using different RPC endpoints. Those RPC endpoints may have different views of the parent state. At the moment the nodes don't have any way to verify the correctness of `ParentFinality` received from the RPC endpoints. That's why the nodes have to reach consensus on the parent finality through a voting mechanism.

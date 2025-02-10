@@ -3,13 +3,11 @@
 The purpose of this benchmark is to establish a baseline for state growth.
 The idea is to run a simple standalone node and measure the size of the RocksDB data store as the block height goes up.
 
-
 ## Take measurements
 
 Let's use the [materializer](../../materializer/) to start a node.
 
 The following commands is assumed to be executed in this directory.
-
 
 ### Start a node and take measurements
 

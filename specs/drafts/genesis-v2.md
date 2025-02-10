@@ -1,12 +1,12 @@
 # Subnet genesis v2
 
-### Scope 
+### Scope
 
 This document introduces a revised set of processes to conduct subnet genesis, codenamed "Subnet Genesis v2".  
 
 ### Context
 
-_Genesis_ is a term widely used in the DLT space, and it can take various nuances depending on the technology/chain. 
+_Genesis_ is a term widely used in the DLT space, and it can take various nuances depending on the technology/chain.
 In Bitcoin, genesis refers to the first block in the Bitcoin chain. In Tendermint, genesis refers to the specification
 document used to bootstrap a chain.
 
@@ -26,9 +26,9 @@ general steps for genesis are as follows:
 4. Seal the specification (generates the initial state tree).
 5. Materialize the consensus-specific genesis assets.
 
-### Data model 
+### Data model
 
-Below is the schema for the IPC genesis specification, in a relaxed YAML notation. 
+Below is the schema for the IPC genesis specification, in a relaxed YAML notation.
 
 ```yaml
 ## Schema version. Initial value: 1.

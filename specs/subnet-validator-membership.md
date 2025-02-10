@@ -1,4 +1,5 @@
 # Subnet Validator Membership
+
 Before proceeding, this doc assumes you have preliminary understanding of Subnet’s lifecycle.
 
 At the time of this writing, the child subnet blockchain is running on top of [CometBFT](https://docs.cometbft.com/v0.37/), whose Ignite consensus is an optimised variant of PBFT. As such, the consensus is driven by a form of voting by a group of validators. Subnet validation deals with validator management in the child subnet, more specifically:

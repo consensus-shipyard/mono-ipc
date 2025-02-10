@@ -6,6 +6,7 @@ some of which can be implemented using Fendermint:
 ![Architecture](images/IPC%20with%20Tendermint%20Core.jpg)
 
 The components in a nutshell:
+
 * __Lotus rootnet__: Lotus has to support IPC to act as the rootnet for its child subnets. There are competing proposals with regards to this being in the form of mostly user-deployed smart contracts, or built-in (privileged) capabilities.
 * __Tendermint Core__: acts as the generic SMR in one of the subnets, talking to all other Tendermint instances in that subnet. It runs separate from the Application, which is completely in our control, and talks to it via ABCI++.
 * __Application__: This is where we implement the IPC ledger logic, the transaction handling, using the FVM/FEVM. We implement the ABCI++ interface to be compatible with Tendermint. Other than that we delegate to reusable smart contracts, for example to produce checkpoints. We rely on ABCI to pass us the headers to be signed, and we can use the ledger to gather signatures for checkpoints.
@@ -19,7 +20,7 @@ The components in a nutshell:
 
 We want make use of the ABCI++ interface to get more control over the voting process by implementing the new `PrepareProposal` and `ProcessProposal` methods. These are close to be [released](https://github.com/tendermint/tendermint/issues/9053) in the upcoming `v0.37` of Tendermint Core.
 
-The best place to look up the details of the ABCI++ spec is currently at https://github.com/tendermint/tendermint/tree/v0.37.0-rc2/spec/abci
+The best place to look up the details of the ABCI++ spec is currently at <https://github.com/tendermint/tendermint/tree/v0.37.0-rc2/spec/abci>
 
 Note that the spec has previously been under the `main` branch but not any more, and that it changed recently to only contain the above two extra methods, but not _vote extensions_ for the new `FinalizeBlock` method, which was supposed to replace `BeginBlock`, `DeliverTx`, `EndBlock` and I think `Commit`.
 

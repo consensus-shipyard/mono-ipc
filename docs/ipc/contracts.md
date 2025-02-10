@@ -2,10 +2,9 @@
 
 IPC subnets have the same exact support for the deployment of EVM contracts as the Filecoin network. We highly recommend refering to [the following docs](https://docs.filecoin.io/smart-contracts/fundamentals/overview/) for a detailed description of FEVM and the steps and tooling to use EVM in Filecoin. In this section, we will present the additional steps required to follow the docs in a subnet.
 
-
 ## Configuring EVM tooling with your subnet
 
-In order to connect the Ethereum tooling to your subnet, you'll need to get the RPC endpoint of your subnet peer and the subnet's `chainID`. For this, you can use the following command from your IPC agent to retrieve the RPC endpoint for a specific subnet: 
+In order to connect the Ethereum tooling to your subnet, you'll need to get the RPC endpoint of your subnet peer and the subnet's `chainID`. For this, you can use the following command from your IPC agent to retrieve the RPC endpoint for a specific subnet:
 
 ```bash
 ipc-cli subnet rpc --network <subnet-id>
@@ -16,10 +15,9 @@ rpc: "http://0.0.0.0:8545/"
 chainID: "1874254988642837"
 ```
 
-
 ### Example: Connect Metamask to your subnet
 
-To connect Metamask to your subnet, you need to add it as a new network. To do this you need to: 
+To connect Metamask to your subnet, you need to add it as a new network. To do this you need to:
 
 - Click `Add network` in networks section of Metamask.
 
@@ -39,9 +37,9 @@ With this your Metamask should be successfully connected to your subnet, and you
 
 ## Deploying a contract in your subnet
 
-To deploy a smart contract in your subnet the only pre-requirement is to have some funds in the subnet to pay for the gas. To inject funds in your subnet you can follow the steps described [here](./usage.md). 
+To deploy a smart contract in your subnet the only pre-requirement is to have some funds in the subnet to pay for the gas. To inject funds in your subnet you can follow the steps described [here](./usage.md).
 
-It is important to note that the IPC agent doesn't understand Ethereum addresses directly, which means that to send funds to an Ethereum address, you will need to send funds to their underlying f4 address. You can use the following command from the IPC agent to get the f4 address for an Ethereum address: 
+It is important to note that the IPC agent doesn't understand Ethereum addresses directly, which means that to send funds to an Ethereum address, you will need to send funds to their underlying f4 address. You can use the following command from the IPC agent to get the f4 address for an Ethereum address:
 
 ```bash
 ipc-cli util eth-to-f4-addr --addr <eth-adddress>

@@ -4,7 +4,7 @@
 
 This project has a large set of dependencies and they are all bundled together in a root Cargo.lock file. This means that sometimes, when upgrading some of our dependencies, Cargo will do something unexpected which causes build errors which can be very time consuming to figure out.
 
-### Failed to select a version for `xyz`.
+### Failed to select a version for `xyz`
 
 <details>
 <summary>Example</summary>
@@ -27,12 +27,12 @@ all possible versions conflict with previously selected packages.
     ... which satisfies path dependency `fil_actor_miner` (locked to 12.0.0) of package `fil_actors_integration_tests v1.0.0 (/home/fridrik/workspace4/builtin-actors/integration_tests)`
     ... which satisfies path dependency `fil_actors_integration_tests` (locked to 1.0.0) of package `test_vm v12.0.0 (/home/fridrik/workspace4/builtin-actors/test_vm)`
 ```
+
 </details>
 
 If you get this error, then it means that Rust could not find a version of the `xyz` crate which fulfills the requirements of the package and other packages that depend on it. To debug this, look what dependencies of `xyz` package are, and check if they need to be updated.
 
 This error can happen for example when upgrading to a new major/minor FVM versions without upgrading also other dependencies like `frc_dispatch` which requires fvm as well. In that case we must upgrade the `frc_dispatch` package to use the same FVM version as we are using.
-
 
 ### Unexplained transitive dependencies in wasm32 target after upgrading FVM version
 
@@ -58,6 +58,7 @@ So I had tried cargo clean, removing all docker images/containers but nothing wo
 If something like this happen again, I will make sure to try to remove .cargo/registry altogether to make sure there are no local changes.
 If someone knows if its possible to check if there are any local changes in the .cargo/registry I would be interested to know, but as far as I know there is no way to do that
 ```
+
 </details>
 
 If you are seeing weird unexplained behaviour that you kind of can't wrap your head around, then you may want to delete your `~/.cargo/registry` and run `cargo build`. Here is why, you _might_ have accidentally changed some of the crates's source files that cargo is using in your project. There is no way to know if you had made any local changes to any of these crates as `Cargo`` does not maintain hash of these dependencies and there is no git repo available to compare against.

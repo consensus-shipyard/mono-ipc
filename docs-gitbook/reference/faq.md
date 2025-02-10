@@ -10,7 +10,7 @@ The IPC team is working on delivering IPC features incrementally based on the ro
 * :white\_check\_mark: _**Milestone2.5:** IPC preview._
   * This milestone migrates away from the Eudico/Lotus stack to the Fendermint stack.
   * Developers can spin up new IPC subnets anchored on Filecoin's Calibration network for general purposes with the fast block time and finality, not customization at this stage.
-*   _**\[WIP] Milestone 3:** Production-grade manually-created, customizable L2+ networks_
+* _**\[WIP] Milestone 3:** Production-grade manually-created, customizable L2+ networks_
 
     Audited and tested a version of the Fendermint stack that is safe to deploy production apps and move customers’ funds into (well-designed) subnets.&#x20;
 * _**Milestone 4**: Support for user-deployed Wasm actors + multi-subnet apps + QoL improvements._
@@ -146,7 +146,7 @@ The smart contract interaction between subnets is achieved by using GMP (General
 
 ***
 
-### Cost & Performance:
+### Cost & Performance
 
 **Q: Are the gas usage costs the same as the Filecoin mainnet (independent from gas price)?**&#x20;
 

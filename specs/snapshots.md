@@ -30,14 +30,14 @@ The snapshot system has the following major components:
 
 - [`SnapshotManifest`](https://github.com/consensus-shipyard/ipc/blob/specs/fendermint/vm/snapshot/src/manifest.rs) is essentially the metadata we keep about each snapshot and map onto the CometBFT type
 - [`SnapshotManager`](https://github.com/consensus-shipyard/ipc/blob/specs/fendermint/vm/snapshot/src/manager.rs) runs in the background and maintains snapshot made from the local state. Its parameters include:
-    - `snapshots_dir` is the file system directory to store snapshots at
-    - `chunk_size` is the target size for snapshot chunks in bytes
-    - `hist_size` is the number of snapshots to keep (2-3 is the recommendation)
-    - `block_interval` is the number of blocks between snapshots, e.g. 10,000 means creating a block at every height divisible by 10,000.
+  - `snapshots_dir` is the file system directory to store snapshots at
+  - `chunk_size` is the target size for snapshot chunks in bytes
+  - `hist_size` is the number of snapshots to keep (2-3 is the recommendation)
+  - `block_interval` is the number of blocks between snapshots, e.g. 10,000 means creating a block at every height divisible by 10,000.
 - [`SnapshotState`](https://github.com/consensus-shipyard/ipc/blob/specs/fendermint/vm/snapshot/src/state.rs) holds the STM variables that constitute the state of the snapshoting system:
-    - `snapshots` is the list of exports available on the file system. Each snapshot is in its own sub-directory, with chunks in individual files. The list contains `SnapshotItem` which is capable of loading individual chunks, or importing the whole snapshot into the `Blockstore` ; it also remembers the last time it was accessed, so we have some grace period before removing old snapshots if a client is actively downloading it.
-    - `latest_params` is the last block height and hash the manager was notified about. If the manager is busy exporting the previous snapshot, it might skip some of these notifications, as it only reacts to them when it’s not already doing work.
-    - `current_download` is the state of any snapshot currently being fed to the manager by CometBFT, which is being stored in a temporary directory until all chunks are available.
+  - `snapshots` is the list of exports available on the file system. Each snapshot is in its own sub-directory, with chunks in individual files. The list contains `SnapshotItem` which is capable of loading individual chunks, or importing the whole snapshot into the `Blockstore` ; it also remembers the last time it was accessed, so we have some grace period before removing old snapshots if a client is actively downloading it.
+  - `latest_params` is the last block height and hash the manager was notified about. If the manager is busy exporting the previous snapshot, it might skip some of these notifications, as it only reacts to them when it’s not already doing work.
+  - `current_download` is the state of any snapshot currently being fed to the manager by CometBFT, which is being stored in a temporary directory until all chunks are available.
 - [`SnapshotClient`](https://github.com/consensus-shipyard/ipc/blob/specs/fendermint/vm/snapshot/src/client.rs) shares its `SnapshotState` with the `SnapshotManager` and is the interface for the `App` to send notification and run queries over the state, as well as to save chunks coming from CometBFT to files and kick off the state restoration when all are present.
 - [`car`](https://github.com/consensus-shipyard/ipc/tree/specs/fendermint/vm/snapshot/src/car) module has utilities such as `ChunkWriter`, `BlockStreamer` and `split` to divide CAR files into chunks in a way that no IPLD `Block` is split across files.
 
@@ -45,16 +45,16 @@ The following methods are worth looking at:
 
 - `SnapshotManager::run` to see how notifications are handled
 - `SnapshotManager::create_snapshot` to see steps involved in creating a snapshot:
-    - create a snapshot from a given block height and FVM parameters
-    - export the snapshot CAR file to a temporary directory
-    - record its size and create a checksum (these go into the manifest)
-    - split the CAR file into chunks with the configured target size
-    - create the manifest and export it to JSON
-    - move the temporary directory to the final place under the manager
+  - create a snapshot from a given block height and FVM parameters
+  - export the snapshot CAR file to a temporary directory
+  - record its size and create a checksum (these go into the manifest)
+  - split the CAR file into chunks with the configured target size
+  - create the manifest and export it to JSON
+  - move the temporary directory to the final place under the manager
 - `SnapshotClient::save_chunk` handles chunks from remote peers:
-    - checks that it’s the next expected chunk (CometBFT loads them sequentially)
-    - saves them to a part file
-    - if it’s the last chunk (according to the manifest), it runs the checksum and returns the `SnapshotItem` ready to be loaded
+  - checks that it’s the next expected chunk (CometBFT loads them sequentially)
+  - saves them to a part file
+  - if it’s the last chunk (according to the manifest), it runs the checksum and returns the `SnapshotItem` ready to be loaded
 - `App::apply_snapshot_chunk` calls `SnapshotClient::save_chunk` and if it gets back a `SnapshotItem`, it loads the contents into its `Blockstore` and finally sets the committed state.
 - `App::commit` calls `SnapshotClient::notify` with the current block height and the committed state parameters.
 - `tmconv::to_snapshot` maps the fields of a `SnapshotManifest` to the CometBFT type, in particular it encodes the `FvmStateParams` into the `metadata` field
@@ -75,10 +75,10 @@ Snapshots are not enabled by default. To enabling them requires configuration in
 
 - in the [Fendermint config](https://github.com/consensus-shipyard/ipc/blob/7af25c4c860f5ab828e8177927a0f8b6b7a7cc74/fendermint/app/config/default.toml#L68), e.g. by setting the `FMT_SNAPSHOT__ENABLED` env var
 - in the [CometBFT config](https://docs.cometbft.com/v0.37/core/configuration) by setting multiple variables:
-    - `CMT_STATESYNC_ENABLE` to allow CometBFT to bootstrap from others’ snapshots
-    - `CMT_STATESYNC_RPC_SERVERS` with a list of at least 2 CometBFT peers where the Light Client can go and catch up with the state of the chain before CometBFT starts asking for snapshots
-    - `CMT_STATESYNC_TRUST_HEIGHT` is a height of a recent block which the operator knows to be on the correct chain
-    - `CMT_STATESYNC_TRUST_HASH` is the hash of that block
+  - `CMT_STATESYNC_ENABLE` to allow CometBFT to bootstrap from others’ snapshots
+  - `CMT_STATESYNC_RPC_SERVERS` with a list of at least 2 CometBFT peers where the Light Client can go and catch up with the state of the chain before CometBFT starts asking for snapshots
+  - `CMT_STATESYNC_TRUST_HEIGHT` is a height of a recent block which the operator knows to be on the correct chain
+  - `CMT_STATESYNC_TRUST_HASH` is the hash of that block
 
 See the documentation of [State Sync](https://docs.cometbft.com/v0.37/core/state-sync) for how to obtain such trusted values.
 

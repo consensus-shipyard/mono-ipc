@@ -20,7 +20,6 @@ Inside this migration function, we need to retrieve the actor state associated w
 
 Our migration function is defined as follows:
 
-
 ```rust
 pub fn patch_actor_state_func(state: &mut FvmExecState<NamespaceBlockstore>) -> anyhow::Result<()> {
     let state_tree = state.state_tree_mut();

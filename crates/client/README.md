@@ -8,7 +8,7 @@ Fendermint is an effort to implement [IPC with Tendermint Core](https://docs.goo
 
 ## Quick Start
 
-- [Local testnets](../docs/client/localnet.md)
+* [Local testnets](../docs/client/localnet.md)
 
 ## Docs
 
@@ -62,7 +62,6 @@ make docker-build
 
 See the [docker docs](./docker/README.md) for more details about the build.
 
-
 ### Pre-built Docker Image
 
 The CI build publishes a [Docker image](https://github.com/consensus-shipyard/client/pkgs/container/fendermint) to Github Container Registry upon a successful build on the `main` branch. This is the same image as the one used in the End-to-End tests; it contains the built-in actor bundle and IPC Solidity actors, ready to be deployed during genesis.
@@ -84,6 +83,7 @@ The [settings](./app/settings/) contains the configuration options for the `fend
 The default configuration is in [default.toml](./app/config/default.toml). This file is copied into the `fendermint` docker image and should not be edited, so that any further releases can provide any new keys with default values necessary for the application to start; instead the operator can provide further partial configuration files to override the defaults.
 
 The [Settings::config](./app/settings/src/lib.rs) method expects the following files in a configuration directory:
+
 * `default.toml` with the settings for the keys that have meaningful default values
 * `<mode>.toml` is an optional file correponding to the `--mode` CLI option (by default `dev`); these are files that could be checked into Github e.g. to have values for production or test environments
 * `local.toml` is also optional with potential overrides specific to the developer's machine
@@ -95,6 +95,7 @@ An example of this override is the [test.toml](./app/config/test.toml) file whic
 The location of the configuration directory is determined by [Options::config_dir](./app/options/src/lib.rs) in the following way: The optional `--config-dir` CLI parameter can be used to set it directly. If it's missing, the default is the `config` directory under the `--home-dir` CLI parameter, which by default is `~/.fendermint`. The `FM_CONFIG_DIR` and `FM_HOME_DIR` env vars are also recognised.
 
 The `--config-dir` can be used in combination with `--home-dir` and the pre-build docker image to:
+
 1. set `--home-dir` to a custom mounted volume where the data files can persist
 2. set `--config-dir` to `/client/config`, which is where the `runner.Dockerfile` places the `default.toml` file
 3. mount any custom config files next to `default.toml` in the container

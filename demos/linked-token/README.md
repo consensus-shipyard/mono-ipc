@@ -13,10 +13,12 @@ All contracts are upgradable via the OpenZeppelin's Upgrade framework, with scri
 ## Usage
 
 To deposit N tokens into the subnet:
+
 - Approve the controller to spend N tokens on the holder's behalf.
 - Call the `linkedTransfer(address receiver, uint256 amount)` method from an EOA or a contract on the parent.
 
 To withdraw N tokens from the subnet:
+
 - Call the `linkedTransfer(address receiver, uint256 amount)` method from the holder EOA or a contract on the subnet.
 
 ## Design
@@ -52,7 +54,7 @@ A high-level overview of the process is shown in the following diagrams:
     Transaction dropped from the mempool: 0x563e6ca21d46417020accd05cce992e30f4cb7e69e6b76cc249fea53037bdaa8
     ```
 
-    You can search for the transaction on a Filecoin explorer (e.g. Filfox) and find the correct contract address from the other tab under EthAddress: https://calibration.filfox.info/en/message/0x563e6ca21d46417020accd05cce992e30f4cb7e69e6b76cc249fea53037bdaa8?t=4
+    You can search for the transaction on a Filecoin explorer (e.g. Filfox) and find the correct contract address from the other tab under EthAddress: <https://calibration.filfox.info/en/message/0x563e6ca21d46417020accd05cce992e30f4cb7e69e6b76cc249fea53037bdaa8?t=4>
 
 2. Mint 1000 USDCTest tokens to your wallet on the parent.
 
@@ -94,7 +96,6 @@ A high-level overview of the process is shown in the following diagrams:
     make initialize-controller
     ```
 
-
 ### Depositing tokens into the subnet
 
 1. Approve the Token Controller contract to handle our funds:
@@ -128,7 +129,6 @@ A high-level overview of the process is shown in the following diagrams:
     ```jsx
     0x00000000000000000000000000000000000000000000000000000000000003e8
     ```
-
 
 ### Withdraw token from the subnet
 

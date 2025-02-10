@@ -34,10 +34,10 @@ After that, the parent subnet nodes reach out to their associated IPC Agent to r
 
 This is just a high level view of what happens during message resolution. In the next section we will delve deeper into the internals of the IPLD Resolver.
 
-
 ## IPLD Resolver Sub-components
 
 The IPLD Resolver uses libp2p to form a Peer-to-Peer network, using the following protocols:
+
 * [Ping](https://github.com/libp2p/rust-libp2p/tree/v0.50.1/protocols/ping)
 * [Identify](https://github.com/libp2p/rust-libp2p/tree/v0.50.1/protocols/identify) is used to learn the listening address of the remote peers
 * [Kademlia](https://github.com/libp2p/rust-libp2p/tree/v0.50.1/protocols/kad) is used for peer discovery
@@ -51,6 +51,7 @@ The Resolver is completely agnostic over what content it can resolve, as long as
 The interface with the host system is through a host-provided implementation of the [BitswapStore](https://github.com/ipfs-rust/libp2p-bitswap/blob/7dd9cececda3e4a8f6e14c200a4b457159d8db33/src/behaviour.rs#L55) which the library uses to retrieve and store content. Implementors can make use of the [missing_blocks](../src/missing_blocks.rs) helper method which recursively collects all CIDs from an IPLD `Blockstore`, starting from the root CID we are looking for.
 
 Internally the protocols are wrapped into behaviours that interpret their events and manage their associated state:
+
 * `Discovery` wraps `Kademlia`
 * `Membership` wraps `Gossipsub`
 * `Content` wraps `Bitswap`

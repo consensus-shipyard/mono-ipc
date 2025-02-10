@@ -1,4 +1,5 @@
 # Bottom Up Interactions
+
 This document takes a closer look in the IPC mechanics involved in information flowing from the child to the parent subnet, a.k.a. bottom-up.
 
 # Interactions
@@ -63,7 +64,7 @@ The reason we wait for the the change to be committed is so that the transaction
 The signing and sending of transactions happens in the [`broadcast`](https://github.com/consensus-shipyard/ipc/blob/specs/fendermint/vm/interpreter/src/fvm/broadcast.rs) module which fetches the current nonce of the validator, estimates the gas, performs retries, etc. Because it fetches the nonce for each submission, it cannot be used in parallel.
 
 <aside>
-💡 To submit transactions the validators of the subnet need to have an Ethereum account with sufficient tokens to cover the gas cost. They can use `fund` in order bring in tokens from the parent subnet. 
+💡 To submit transactions the validators of the subnet need to have an Ethereum account with sufficient tokens to cover the gas cost. They can use `fund` in order bring in tokens from the parent subnet.
 
 The fact that validators have to pay to submit transactions to the subnet they validate may seem harsh; intuitively these should be free! But remember that a subnet can contain Byzantine validators who might abuse their privileges of free transaction submission. However, there is no reason why Fendermint couldn’t contain extra logic to compensate successful submissions for their costs.
 

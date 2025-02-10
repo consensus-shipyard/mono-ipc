@@ -22,29 +22,29 @@ At the root of the manifest we have the following properties:
 
 - `accounts` is technically a map, but really is just a set of logical account identifiers such as `alice` and `bob`. These IDs can be used throughout the manifest whenever we refer to an account, instead of public keys or FVM addresses. That is so we can provide a static description of the subnet, and create cryptographic keys later, which can get unpredictable FVM actor IDs when we use them on a chain.
 - `rootnet` describes the L1, which can have one of the following types:
-    - `New` means we will provision the L1 chain ourselves, in which case we have to define:
-        - `validators` containing a mapping from account ID to collateral (voting power)
-        - `balances` listing the initial token balance for every account on the L1 (assumed to be Ethereum accounts because that’s how we interact with IPC).
-        - `nodes` is the list of physical nodes to create to run the L1
-        - `env` contains custom environment variables passed to all nodes
-    - `External` means we will use an existing L1 such as Calibration net:
-        - `chain_id` is the numerical ID of the L1 chain
-        - `deployment` describes how we’ll get the IPC stack:
-            - `New` means we have to deploy it from scratch using the given `deployer` account, which must have balance on the L1
-            - `Existing` means it’s already deployed, and we just have to give the Ethereum addresses of the `gateway` and `registry` actors
-        - `urls` contains a list of RPC addresses of nodes on the L1 where we can send queries and transactions
+  - `New` means we will provision the L1 chain ourselves, in which case we have to define:
+    - `validators` containing a mapping from account ID to collateral (voting power)
+    - `balances` listing the initial token balance for every account on the L1 (assumed to be Ethereum accounts because that’s how we interact with IPC).
+    - `nodes` is the list of physical nodes to create to run the L1
+    - `env` contains custom environment variables passed to all nodes
+  - `External` means we will use an existing L1 such as Calibration net:
+    - `chain_id` is the numerical ID of the L1 chain
+    - `deployment` describes how we’ll get the IPC stack:
+      - `New` means we have to deploy it from scratch using the given `deployer` account, which must have balance on the L1
+      - `Existing` means it’s already deployed, and we just have to give the Ethereum addresses of the `gateway` and `registry` actors
+    - `urls` contains a list of RPC addresses of nodes on the L1 where we can send queries and transactions
 - `subnets` is a map which contains the IPC subnets to be created on the L1 (we currently do not support connecting to an existing subnet):
-    - `creator` is the logical ID of the account to be used to create the subnet, ie. to send the transaction invoking the `registry` contract on the L1
-    - `validators` is a map with the collateral each validator in this subnet will `join` with (for this they must have the balance on the L1; currently the materializer only supports PoS, not PoA)
-    - `balances` is a map with the amount of tokens that accounts will `fund` the subnet with
-    - `nodes` lists the physical machines that will run this subnet
-    - `relayers` defines the how information flows bottom-up:
-        - `submitter` is the account that sends the checkpoint as a transaction to the parent network
-        - `follow_node` is the ID of the node which the relayer will query for changes
-        - `submit_node` is either a URL or the ID of the parent node to submit transactions to; URLs are used when we have an external rootnet (in which case there are no nodes in the manifest), while IDs work with new rootnets that are run by nodes we defined
-    - `bottom_up_checkpoint.period` defines the frequency of checkpoints on the subnet
-    - `env` is a list of custom environment variables all nodes get
-    - `subnets` recursively defines nested subnets
+  - `creator` is the logical ID of the account to be used to create the subnet, ie. to send the transaction invoking the `registry` contract on the L1
+  - `validators` is a map with the collateral each validator in this subnet will `join` with (for this they must have the balance on the L1; currently the materializer only supports PoS, not PoA)
+  - `balances` is a map with the amount of tokens that accounts will `fund` the subnet with
+  - `nodes` lists the physical machines that will run this subnet
+  - `relayers` defines the how information flows bottom-up:
+    - `submitter` is the account that sends the checkpoint as a transaction to the parent network
+    - `follow_node` is the ID of the node which the relayer will query for changes
+    - `submit_node` is either a URL or the ID of the parent node to submit transactions to; URLs are used when we have an external rootnet (in which case there are no nodes in the manifest), while IDs work with new rootnets that are run by nodes we defined
+  - `bottom_up_checkpoint.period` defines the frequency of checkpoints on the subnet
+  - `env` is a list of custom environment variables all nodes get
+  - `subnets` recursively defines nested subnets
 
 The `nodes` in the manifest have the following properties:
 
@@ -149,7 +149,6 @@ For example the following manifest was used to create a local stand-alone node t
             seed_nodes: []
             ethapi: true
     ```
-
 
 The following commands provision the subnet locally:
 

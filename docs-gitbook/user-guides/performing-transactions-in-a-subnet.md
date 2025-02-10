@@ -10,8 +10,6 @@ description: >-
 
 Assuming the process of launching a custom IPC Subnet with at least one validator node is complete, the custom IPC Subnet is now available for a user (defined here as a wallet on the subnet that is does not necessarily represent a validator) to perform transactions.&#x20;
 
-
-
 * A user would begin by launching Metamask, and manually adding the custom IPC Network to their Metamask networks list using “Add a network manually.” &#x20;
 
 \

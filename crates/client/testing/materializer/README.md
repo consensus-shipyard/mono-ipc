@@ -3,6 +3,7 @@
 The `materializer` is a crate to help provision testnets based on a _manifest_, using a backend such as Docker.
 
 See the following for more details:
+
 * the [manifest](./src/manifest.rs) format and corresponding [golden files](./golden/manifest)
 * the [testnet](./src/testnet.rs) that walks the manifests and instructs the materializer to provision resources
 * the [materializer](./src/materializer.rs) which is the abstract interface that backends need to implement
@@ -12,7 +13,6 @@ See the following for more details:
 * the [CLI commands](../../app/options/src/materializer.rs) to use the materializer outside the tests
 
 ## Usage
-
 
 ### Validate
 
@@ -63,6 +63,7 @@ The names contain some hashed part that makes them unique, but with their prefix
 #### Artifacts
 
 As the command indicates we can find the artifacts created by the docker materializer in `./tests/docker-materializer-data`, for example:
+
 * the `materializer-state.json` file contains the mappings from node names to port ranges on the host
 * the `testnets` directory contains all the testnets, inheriting the names of the manifest they come from
 * the `testnets/<name>/ipc` directory contains the configuration for the `ipc-cli`, namely its `config.toml` and the `evm_keystore.json`
@@ -71,7 +72,6 @@ As the command indicates we can find the artifacts created by the docker materia
 * the `testnets/<name>/root/subnets/<subnet-name>/subnet-id` file contains the `SubnetID` allocated to the subnet
 * `testnets/<name>/root/subnets/<subnet-name>/genesis.json` is the Genesis constructed from the parent
 * `testnets/<name>/root/subnets/<subnet-name>/nodes/<node-name>/static.env` contains environment variables for the node
-
 
 #### Use `curl` to access the APIs
 
@@ -86,11 +86,13 @@ To check what the port mapping is, we can either look at the `docker ps` command
 ```
 
 Probe CometBFT:
+
 ```bash
 curl http://localhost:30357/status
 ```
 
 Probe the Ethereum API:
+
 ```bash
 curl -X POST \
            -H 'Content-Type: application/json' \
@@ -99,11 +101,13 @@ curl -X POST \
 ```
 
 Probe Fendermint Prometheus metrics:
+
 ```bash
 curl http://localhost:30384/metrics
 ```
 
 The ports get allocated from 30000 onward, 100 range to each node, so the last two digits resemble to internal ports:
+
 * 8045 -> 30x45
 * 26657 -> 30x57
 * 9184 -> 30x84
@@ -111,9 +115,9 @@ The ports get allocated from 30000 onward, 100 range to each node, so the last t
 #### Logs
 
 For troubleshooting we can look at the logs, either by using `docker logs` and the container name, or for the `fendermint` container we can also access the logs:
+
 * `less testing/materializer/tests/docker-materializer-data/testnets/layer2/root/nodes/brussels/client/logs/fendermint.2024-03-11.log`
 * `docker logs brussels-fendermint-955632`
-
 
 #### Env vars
 
@@ -123,7 +127,6 @@ The node containers all get same env vars, which are written to the `static.env`
 ❯ docker exec -it london-fendermint-05d823 bash
 I have no name!@london-fendermint-05d823:~$ /opt/docker/docker-entry.sh "fendermint config" /opt/docker/static.env /opt/docker/dynamic.env
 ```
-
 
 ### Teardown
 

@@ -10,7 +10,6 @@ To replace the existing `chainmetadata` actor that we deployed at genesis with t
 
 Our migration function is defined as follows:
 
-
 ```rust
 // The WASM binary of the new version of the chainmetadata actor.
 static WASM_BIN: &[u8] = include_bytes!("../output/fendermint_actor_chainmetadata_v2.wasm");
