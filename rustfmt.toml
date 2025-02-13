@@ -1,4 +1,4 @@
 edition = "2021"
 
 # Ignore auto-generated files.
-ignore = ["contract-bindings/src/gen"]
+ignore = ["crates/contract-bindings/src"]

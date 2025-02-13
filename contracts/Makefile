@@ -85,7 +85,7 @@ compile-abi: node_modules | forge
 	./ops/compile-abi.sh $(OUTPUT)
 
 rust-binding:
-	OUTPUT=$(OUTPUT) cargo build --locked --release --manifest-path ../contract-bindings/Cargo.toml -p ipc_actors_abis
+	OUTPUT=$(OUTPUT) cargo build --locked --release --manifest-path ../crates/contract-bindings/Cargo.toml -p ipc_actors_abis
 
 # ==============================================================================
 # Running security checks within the local computer
