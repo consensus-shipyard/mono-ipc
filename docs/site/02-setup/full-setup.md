@@ -2,6 +2,7 @@
 
 The commands are all executed by the `fendermint` binary, which is produced from the `fendermint_app` crate,
 so we have many ways to run the program:
+
 * `fendermint <args>`, after running `cargo install --path fendermint/app`
 * `./target/release/fendermint <args>`, after running `cargo build --release`
 * `cargo run -p fendermint_app --release -- <args>`
@@ -64,7 +65,7 @@ $ cat test-network/genesis.json
 
 ### Create some keys
 
-Next, let's create some cryptographic key pairs we want want to use either for accounts or validators at Genesis.
+Next, let's create some cryptographic key pairs we want to use either for accounts or validators at Genesis.
 
 ```shell
 mkdir test-network/keys
@@ -83,7 +84,7 @@ $ cat test-network/keys/alice.pk
 Ak5Juk793ZAg/7Ojj4bzOmIFGpwLhET1vg2ROihUJFkq
 ```
 
-If you want to use existing ethereum private key, perform the following:
+If you want to use existing Ethereum private key, perform the following:
 
 ```shell
 cargo run -p fendermint_app --release -- key eth-to-fendermint --secret-key <path to private key> --name eth --out-dir test-network/keys
@@ -483,6 +484,7 @@ Note that the first block execution is very slow because we have to load the Was
 but after that the blocks come in fast, one per second.
 
 ### Run ETH API
+
 If we want to use `evm` related API, such as running `fendermint/eth/api/examples/ethers.rs`, we need to start ETH API process.
 
 The ETH RPC api runs on top of cometbft. Make sure you have cometbft running properly. The architecture is as follows:
@@ -735,8 +737,10 @@ Note that the script figures out the Alice's nonce on its own, so we don't have 
 
 ## Deploy IPC child subnet
 
-### Crate genesis from parent
+### Create genesis from parent
+
 Fendermint includes a command to automatically create the genesis file for an IPC child subnet according to the information for the subnet available in its parent. Here's an example of the generation of a genesis file for a subnet that has already been bootstrapped in the parent.
+
 ```shell
 cargo run -p fendermint_app -- \
     --network=test \
@@ -747,6 +751,7 @@ cargo run -p fendermint_app -- \
 ```
 
 Here's a sample execution of the command for an already bootstrapped subnet in `/r314159`:
+
 ```shell
 cargo run -p fendermint_app -- \
     --network=test \

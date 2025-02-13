@@ -6,7 +6,7 @@ IPC's observability framework emits events throughout execution, which are recor
 This enables detailed monitoring and analysis of system behavior.
 This is achieved through the use of the `ipc-observability` crate/library, which provides all the necessary helpers and tools to facilitate this process.
 
-### How it works
+## Key features
 
 1. **Events**: Specific events are defined and triggered throughout the codebase to capture significant occurrences or actions.
    These events encapsulate relevant data and context about what is happening within the system.

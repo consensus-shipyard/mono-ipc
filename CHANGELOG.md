@@ -178,7 +178,7 @@ _Full changelog below._
 
 IPC now emits events during execution. These events are recorded in the Journal, and are transformed into Prometheus metrics. Observability configuration is performed via `config.toml`.
 
-Refer to full observability documentation [here](./docs/fendermint/observability.md).
+Refer to full observability documentation [here](docs/00-learn/01-concepts/observability.md).
 
 ### New events and metrics
 

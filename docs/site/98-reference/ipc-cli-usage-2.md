@@ -3,21 +3,26 @@
 >💡 For background and setup information, make sure to start with the [README](/README.md).
 
 ## Key management
+
 The `ipc-cli` has internally an EVM wallet that it uses to sign transactions and interact with IPC on behalf of specific addresses. Some of the features available for EVM addresses through the EVM are:
+
 * Creating new Ethereum addresses
 ```bash
 ./bin/ipc-cli wallet new --wallet-type evm
 ```
+
 ```console
 # Sample execution
 ./bin/ipc-cli wallet new --wallet-type evm
 "0x406a7a1d002b71ece175cc7e067620ae5b58e9ec"
 ```
 
-* Exporting a key stored in the IPC cli keystore.
+* Exporting a key stored in the IPC cli keystore
+
 ```bash
 ./bin/ipc-cli wallet export --wallet-type evm --address <EVM-ADDRESS> > <OUTPUT_FILE>
 ```
+
 ```console
 # Sample execution
 ./bin/ipc-cli wallet export --wallet-type evm --address 0x406a7a1d002b71ece175cc7e067620ae5b58e9ec -o /tmp/priv.key

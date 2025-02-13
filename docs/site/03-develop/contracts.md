@@ -39,7 +39,7 @@ With this your Metamask should be successfully connected to your subnet, and you
 
 ## Deploying a contract in your subnet
 
-To deploy a smart contract in your subnet the only pre-requirement is to have some funds in the subnet to pay for the gas. To inject funds in your subnet you can follow the steps described [here](./usage.md). 
+To deploy a smart contract in your subnet the only pre-requirement is to have some funds in the subnet to pay for the gas. To inject funds in your subnet you can follow the steps described [here](usage.md). 
 
 It is important to note that the IPC agent doesn't understand Ethereum addresses directly, which means that to send funds to an Ethereum address, you will need to send funds to their underlying f4 address. You can use the following command from the IPC agent to get the f4 address for an Ethereum address: 
 

@@ -2,7 +2,13 @@
 
 ## Overview
 
-The Validator Gater feature allows the interception of validator-related actions, such as staking, unstaking, and explicit validator membership adjustments (federated membership), based on user-defined policies. By implementing a custom smart contract that adheres to the `IValidatorGater` interface, developers can enforce custom logic to either permit or deny these actions.
+The Validator Gater feature allows the interception of validator membership actions, concretely: staking, unstaking, and explicit membership adjustments (federated membership), based on user-defined policies.
+
+If configured, a Validator Gater will be called by the IPC framework to enquire whether an action should be accepted or rejected. If not configured, IPC will accept all actions by default.
+
+Since all validator membership actions for subnet `/r314/A/B` are performed on the parent network `/r314/A`, the Validator Gater would be configured at that level too.
+
+Setting up a Validator Gater simply involves implementing an EVM smart contract that adheres to the `IValidatorGater` interface, and attaching it to the subnet on creation, or at a later time through an upgrade.
 
 This feature is designed to support both federated and collateral-based networks, providing flexibility to manage validator permissions and validator power assignments through an external gating contract.
 
@@ -22,10 +28,10 @@ The core of the Validator Gater feature is the `IValidatorGater` interface. It a
 interface IValidatorGater {
     /// This intercepts the power update call.
     /// @param id The identifier of the subnet.
-    /// @param validator The address of the validator.
+    /// @param validator The 0x address of the validator.
     /// @param prevPower The previous power of the validator.
     /// @param newPower The new power of the validator.
-    /// @notice Reverts if the power update is not allowed.
+    /// @notice Reverts if the power update is not allowed, or succeeds if it's allowed.
     function interceptPowerDelta(SubnetID memory id, address validator, uint256 prevPower, uint256 newPower) external;
 }
 ```

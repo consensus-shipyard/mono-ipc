@@ -3,8 +3,6 @@
 The following diagrams show preliminary vision for the collaboration between the Filecoin rootnet and the subnets,
 some of which can be implemented using Fendermint:
 
-![Architecture](images/IPC%20with%20Tendermint%20Core.jpg)
-
 The components in a nutshell:
 * __Lotus rootnet__: Lotus has to support IPC to act as the rootnet for its child subnets. There are competing proposals with regards to this being in the form of mostly user-deployed smart contracts, or built-in (privileged) capabilities.
 * __Tendermint Core__: acts as the generic SMR in one of the subnets, talking to all other Tendermint instances in that subnet. It runs separate from the Application, which is completely in our control, and talks to it via ABCI++.
