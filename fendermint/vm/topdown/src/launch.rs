@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 use crate::proxy::ParentQueryProxy;
-use crate::syncer::store::InMemoryParentViewStore;
+use crate::syncer::store::PersistedParentViewStore;
 use crate::syncer::{
     start_polling_reactor, ParentPoller, ParentSyncerConfig, ParentSyncerReactorClient,
 };
 use crate::vote::gossip::{GossipReceiver, GossipSender};
 use crate::vote::payload::PowerUpdates;
-use crate::vote::store::InMemoryVoteStore;
+use crate::vote::store::PersistedVoteStore;
 use crate::vote::{StartVoteReactorParams, VoteReactorClient};
 use crate::{BlockHeight, Checkpoint, Config, TopdownClient, TopdownProposal};
 use anyhow::anyhow;
@@ -30,8 +30,10 @@ use std::time::Duration;
 ///     - signs/certifies and broadcast topdown observation to p2p peers
 ///     - listens to certified topdown observation from p2p
 ///     - aggregate peer certified observations into a quorum certificate for commitment in fendermint
+#[allow(clippy::too_many_arguments)]
 pub async fn run_topdown<CheckpointQuery, GossipTx, GossipRx, Poller, ParentClient>(
-    store: InMemoryParentViewStore,
+    parent_view_store: PersistedParentViewStore,
+    vote_store: PersistedVoteStore,
     query: CheckpointQuery,
     config: Config,
     validator_key: SecretKey,
@@ -49,7 +51,7 @@ where
     ParentClient: ParentQueryProxy + Send + Sync + 'static,
 {
     let (syncer_client, syncer_rx) =
-        ParentSyncerReactorClient::new(config.syncer.request_channel_size, store);
+        ParentSyncerReactorClient::new(config.syncer.request_channel_size, parent_view_store);
     let (voting_client, voting_rx) = VoteReactorClient::new(config.voting.req_channel_buffer_size);
 
     let syncer_client_cloned = syncer_client.clone();
@@ -92,7 +94,7 @@ where
                     .expect("should query latest chain block"),
                 gossip_tx: gossip.0,
                 gossip_rx: gossip.1,
-                vote_store: InMemoryVoteStore::default(),
+                vote_store,
                 internal_event_listener: internal_event_rx,
             },
         )

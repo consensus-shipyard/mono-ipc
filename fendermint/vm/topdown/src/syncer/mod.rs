@@ -51,13 +51,13 @@ pub struct ParentSyncerConfig {
 }
 
 #[derive(Clone)]
-pub struct ParentSyncerReactorClient<S> {
+pub struct ParentSyncerReactorClient<S: Clone> {
     tx: mpsc::Sender<ParentSyncerRequest>,
     checkpoint: Arc<Mutex<Checkpoint>>,
     store: S,
 }
 
-impl<S: ParentViewStore + Send + Sync> ParentSyncerReactorClient<S> {
+impl<S: ParentViewStore + Send + Sync + Clone> ParentSyncerReactorClient<S> {
     pub fn new(
         request_channel_size: usize,
         store: S,

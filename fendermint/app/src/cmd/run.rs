@@ -31,11 +31,12 @@ use fendermint_vm_topdown::proxy::{
     IPCProviderProxy, IPCProviderProxyWithLatency, ParentQueryProxy,
 };
 use fendermint_vm_topdown::syncer::poll::ParentPoll;
-use fendermint_vm_topdown::syncer::store::{InMemoryParentViewStore, ParentViewStore};
+use fendermint_vm_topdown::syncer::store::{ParentViewStore, PersistedParentViewStore};
 use fendermint_vm_topdown::syncer::{ParentPoller, ParentSyncerConfig, TopDownSyncEvent};
 use fendermint_vm_topdown::vote::error::Error;
 use fendermint_vm_topdown::vote::gossip::{GossipReceiver, GossipSender};
 use fendermint_vm_topdown::vote::payload::Vote;
+use fendermint_vm_topdown::vote::store::PersistedVoteStore;
 use fendermint_vm_topdown::vote::VoteConfig;
 use fendermint_vm_topdown::{Checkpoint, TopdownClient};
 use fvm_shared::address::{current_network, Address, Network};
@@ -254,7 +255,7 @@ async fn run(settings: Settings) -> anyhow::Result<()> {
             state_hist_size: settings.db.state_hist_size,
             halt_height: settings.halt_height,
         },
-        db,
+        db.clone(),
         state_store,
         interpreter,
         ChainEnv {
@@ -291,13 +292,15 @@ async fn run(settings: Settings) -> anyhow::Result<()> {
         let parent_proxy = Arc::new(IPCProviderProxyWithLatency::new(make_ipc_provider_proxy(
             &settings,
         )?));
-        let parent_view_store = InMemoryParentViewStore::new();
-
+        let parent_view_store =
+            PersistedParentViewStore::new(db.db.clone(), "topdown-parent-view".to_string())?;
+        let vote_store = PersistedVoteStore::new(db.db, "topdown-vote".to_string())?;
         let gossip = ipld_gossip_client
             .ok_or_else(|| anyhow!("topdown enabled but ipld is not, enable ipld first"))?;
 
         let client = run_topdown(
             parent_view_store.clone(),
+            vote_store,
             app_parent_finality_query,
             config,
             validator

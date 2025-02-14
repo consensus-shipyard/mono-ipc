@@ -21,7 +21,7 @@ use std::fmt::{Display, Formatter};
 
 pub use crate::cache::{SequentialAppendError, SequentialKeyCache, ValueIter};
 use crate::observation::Observation;
-use crate::syncer::store::InMemoryParentViewStore;
+use crate::syncer::store::PersistedParentViewStore;
 use crate::syncer::{ParentSyncerConfig, ParentSyncerReactorClient};
 use crate::vote::payload::PowerUpdates;
 use crate::vote::{VoteConfig, VoteReactorClient};
@@ -55,7 +55,7 @@ pub struct TopdownProposal {
 
 #[derive(Clone)]
 pub struct TopdownClient {
-    syncer: ParentSyncerReactorClient<InMemoryParentViewStore>,
+    syncer: ParentSyncerReactorClient<PersistedParentViewStore>,
     voting: VoteReactorClient,
 }
 
