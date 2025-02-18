@@ -314,11 +314,18 @@ contract IntegrationTestBase is Test, TestParams, TestRegistry, TestSubnetActor,
     }
 
     function defaultGatewayParams() internal view virtual returns (GatewayDiamond.ConstructorParams memory) {
+        uint256 genesisValidator = 99;
+        Validator[] memory validators = new Validator[](1);
+        validators[0] = Validator({
+            weight: 10000,
+            addr: vm.addr(genesisValidator),
+            metadata: TestUtils.derivePubKeyBytes(genesisValidator)
+        });
         GatewayDiamond.ConstructorParams memory params = GatewayDiamond.ConstructorParams({
             networkName: SubnetID({root: ROOTNET_CHAINID, route: new address[](0)}),
             bottomUpCheckPeriod: DEFAULT_CHECKPOINT_PERIOD,
             majorityPercentage: DEFAULT_MAJORITY_PERCENTAGE,
-            genesisValidators: new Validator[](0),
+            genesisValidators: validators,
             activeValidatorsLimit: DEFAULT_ACTIVE_VALIDATORS_LIMIT,
             commitSha: DEFAULT_COMMIT_SHA
         });
