@@ -4,6 +4,7 @@
 use anyhow::{anyhow, Context};
 use fendermint_crypto::PublicKey;
 use fvm_shared::address::Address;
+use fvm_shared::econ::TokenAmount;
 use ipc_provider::config::subnet::{EVMSubnet, SubnetConfig};
 use ipc_provider::IpcProvider;
 use std::path::PathBuf;
@@ -11,8 +12,8 @@ use std::path::PathBuf;
 use fendermint_vm_actor_interface::eam::EthAddress;
 use fendermint_vm_core::Timestamp;
 use fendermint_vm_genesis::{
-    ipc, Account, Actor, ActorMeta, Collateral, Genesis, Multisig, PermissionMode, SignerAddr,
-    Validator, ValidatorKey,
+    ipc, Account, Actor, ActorMeta, Collateral, Genesis, Multisig, PermissionMode, PowerScale,
+    SignerAddr, Validator, ValidatorKey,
 };
 use fendermint_vm_interpreter::genesis::{GenesisAppState, GenesisBuilder};
 
@@ -22,6 +23,8 @@ use crate::cmd;
 use crate::options::genesis::*;
 
 use super::key::read_public_key;
+
+const DEFAULT_POWER_SCALE: PowerScale = 3;
 
 cmd! {
   GenesisArgs(self) {
@@ -341,6 +344,15 @@ async fn new_genesis_from_parent(
 
     let genesis_info = parent_provider.get_genesis_info(&args.subnet_id).await?;
 
+    let power_scale = if matches!(
+        genesis_info.permission_mode,
+        ipc_api::subnet::PermissionMode::Collateral
+    ) {
+        args.power_scale.unwrap_or(DEFAULT_POWER_SCALE)
+    } else {
+        TokenAmount::DECIMALS as PowerScale
+    };
+
     // get gateway genesis
     let ipc_params = ipc::IpcParams {
         gateway: ipc::GatewayParams {
@@ -359,7 +371,7 @@ async fn new_genesis_from_parent(
         chain_name: args.subnet_id.to_string(),
         network_version: args.network_version,
         base_fee: args.base_fee.clone(),
-        power_scale: args.power_scale,
+        power_scale,
         validators: Vec::new(),
         accounts: Vec::new(),
         eam_permission_mode: PermissionMode::Unrestricted,

@@ -175,7 +175,7 @@ impl<DB: Blockstore + Clone> GatewayCaller<DB> {
             .current_membership(state)
             .context("failed to get current membership")?;
 
-        let power_table = membership_to_power_table(&membership, state.power_scale());
+        let power_table = membership_to_power_table(&membership, state.power_scale())?;
 
         Ok((membership.configuration_number, power_table))
     }
@@ -347,19 +347,57 @@ pub fn tokens_to_burn(msgs: &[checkpointing_facet::IpcEnvelope]) -> TokenAmount 
 fn membership_to_power_table(
     m: &gateway_getter_facet::Membership,
     power_scale: PowerScale,
-) -> Vec<Validator<Power>> {
+) -> anyhow::Result<Vec<Validator<Power>>> {
     let mut pt = Vec::new();
 
     for v in m.validators.iter() {
         // Ignoring any metadata that isn't a public key.
-        if let Ok(pk) = PublicKey::parse_slice(&v.metadata, None) {
-            let c = from_eth::to_fvm_tokens(&v.weight);
-            pt.push(Validator {
-                public_key: ValidatorKey(pk),
-                power: Collateral(c).into_power(power_scale),
-            })
-        }
+        let Ok(pk) = PublicKey::parse_slice(&v.metadata, None) else {
+            return Err(anyhow!(
+                "metadata not correct public key: {}",
+                hex::encode(&v.metadata)
+            ));
+        };
+
+        let c = from_eth::to_fvm_tokens(&v.weight);
+        pt.push(Validator {
+            public_key: ValidatorKey(pk),
+            power: Collateral(c).into_power(power_scale),
+        })
     }
 
-    pt
+    Ok(pt)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::fvm::state::ipc::membership_to_power_table;
+    use fendermint_vm_genesis::PowerScale;
+    use fvm_shared::econ::TokenAmount;
+    use ipc_actors_abis::gateway_getter_facet::gateway_getter_facet;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_membership_to_power_table() {
+        let m = gateway_getter_facet::Membership {
+            configuration_number: 4,
+            validators: vec![
+                gateway_getter_facet::Validator {
+                    weight: ethers::types::U256::from(1),
+                    addr: ethers::types::Address::from_str("0x489Ee71B9E8eDEabB30eBA1b09De783Ee9B85F6B").unwrap(),
+                    metadata: ethers::types::Bytes::from_str("0x0485ff6016b937c0cec4f77cc452d250901aa8ff601faba7f4153a34c94ef9cdd8305e9432be8f94036d243dc1d8d5d0526d656ad179d252cf4dfdb49c78c47c65").unwrap(),
+                },
+                gateway_getter_facet::Validator {
+                    weight: ethers::types::U256::from(1000),
+                    addr: ethers::types::Address::from_str("0x0b18D28e32B2A24e003769960e4F3E262b176399").unwrap(),
+                    metadata: ethers::types::Bytes::from_str("0x0485ff6016b937c0cec4f77cc452d250901aa8ff601faba7f4153a34c94ef9cdd8305e9432be8f94036d243dc1d8d5d0526d656ad179d252cf4dfdb49c78c47c65").unwrap(),
+                },
+            ],
+        };
+
+        let v = membership_to_power_table(&m, TokenAmount::DECIMALS as PowerScale).unwrap();
+
+        assert_eq!(v[0].power.0, 1);
+        assert_eq!(v[1].power.0, 1000);
+    }
 }

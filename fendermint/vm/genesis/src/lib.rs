@@ -285,7 +285,7 @@ mod tests {
     use num_traits::Num;
     use quickcheck_macros::quickcheck;
 
-    use crate::{Collateral, Genesis};
+    use crate::{Collateral, Genesis, PowerScale};
 
     #[quickcheck]
     fn genesis_json(value0: Genesis) {
@@ -330,6 +330,13 @@ mod tests {
             let power = collateral.into_power(3).0;
             assert_eq!(power, expected, "{atto:?} atto => {power} power");
         }
+    }
+
+    #[test]
+    fn power_scale_18_decimals() {
+        let c = Collateral(TokenAmount::from_atto(1000));
+        let p = c.into_power(TokenAmount::DECIMALS as PowerScale);
+        assert_eq!(p.0, 1000);
     }
 
     #[test]
