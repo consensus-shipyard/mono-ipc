@@ -7,7 +7,7 @@ env:
   FOUNDRY_PROFILE: ci
 
 jobs:
-  examples-axelar-token:
+  demo-axelar-token:
     name: "Demos: Axelar token"
     runs-on: ubuntu-latest
     strategy:

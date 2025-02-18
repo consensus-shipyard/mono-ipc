@@ -14,6 +14,6 @@ jobs:
     - name: Lint all commonmark/markdown files
       uses: DavidAnson/markdownlint-cli2-action@v19
       with:
-        fix: true
-        globs: '(scripts|crates)/**/README.md;contracts/specs/**/*.md;specs/**/*.md;docs/**/*.md'
+        fix: false
+        globs: '**/README.md;contracts/specs/**/*.md;specs/**/*.md;docs/**/*.md'
         separator: ';'

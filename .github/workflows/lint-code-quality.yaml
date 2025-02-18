@@ -1,0 +1,69 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - main
+    # Pattern matched against refs/tags
+    tags:
+      # Push events to every git tag not containing /
+      # NOTE: '**' would match tags with / in them, e.g. "foo/bar",
+      # but we want to use the tag as a docker tag as well, so it's best avoided.
+      - '*'
+
+  pull_request:
+    branches:
+      - '**'
+    # To add ready_for_review as a trigger we need to list all the defaults.
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+jobs:
+  rust:
+    name: Check Rust Code Quality
+    runs-on: ubuntu-22.04
+    env:
+      RUST_BACKTRACE: full
+      RUSTFLAGS: -Dwarnings
+
+    steps:
+    - name: Check out the project
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install Tools
+      uses: ./.github/actions/install-tools
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        rust: 1.81.0
+
+    - name: Install Extra Libs
+      run: sudo apt-get install -y build-essential clang cmake pkg-config libssl-dev protobuf-compiler git curl
+
+    - name: Install Rust nightly
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: nightly-2024-07-05
+        components: rustfmt,clippy
+
+    - name: Print Rust toolchain default versions
+      run: |
+        echo "rustup show:"
+        rustup show
+        echo "rustc version:"
+        rustc --version
+        echo "cargo version:"
+        cargo -V
+        echo "glibc version"
+        ldd --version
+
+    - name: Check fmt (nightly)
+      run: cargo +nightly-2024-07-05 fmt --check --all
+
+    - name: Check clippy
+      run: |
+        cargo clippy --release --tests --no-deps -- -D clippy::all

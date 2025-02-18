@@ -23,15 +23,6 @@ on:
 
 
 jobs:
-  commonmark:
-    uses: ./.github/workflows/commonmark-lint.yaml
-
-  license:
-    uses: ./.github/workflows/license.yaml
-
-  contracts-prettier:
-    uses: ./.github/workflows/contracts-prettier.yaml
-
   contracts-deployment-test:
     uses: ./.github/workflows/contracts-deployment-test.yaml
     needs: [contracts-prettier]

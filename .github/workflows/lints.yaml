@@ -1,0 +1,30 @@
+name: "Lint PR title"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: read
+
+jobs:
+  license:
+    uses: ./.github/workflows/lint-license.yaml
+
+  contracts-prettier:
+    uses: ./.github/workflows/lint-contracts-prettier.yaml
+
+  conventional-commits:
+    uses: ./.github/workflows/lint-convention-commits.yaml
+
+  commonmark:
+    uses: ./.github/workflows/lint-commonmark.yaml
+
+  code-quality:
+    uses: ./.github/workflows/lint-code-quality.yaml
+
+  

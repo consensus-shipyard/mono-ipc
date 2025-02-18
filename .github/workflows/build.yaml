@@ -84,6 +84,7 @@ jobs:
 
       - name: Build all (including tests, benches, examples)
         run: |
+          # TODO make building the bundle.car a dependency
           cd fendermint && make $PWD/builtin-actors/output/bundle.car
           cargo build --locked --release --all-targets
 
