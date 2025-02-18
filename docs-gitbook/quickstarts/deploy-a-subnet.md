@@ -19,6 +19,7 @@ Several steps in this guide involve running long-lived processes. In each of the
 * Install Rust. See [instructions](https://www.rust-lang.org/tools/install).
 * Install cargo-make: `cargo install --force cargo-make`.
 * Install Docker. See [instructions](https://docs.docker.com/engine/install/ubuntu/).
+* Install Node.js. See [instructions](https://nodejs.org/en/download).
 * Install Foundry. See [instructions](https://book.getfoundry.sh/getting-started/installation).
 
 Also install the following dependencies ([details](https://lotus.filecoin.io/lotus/install/prerequisites/#supported-platforms))
@@ -37,6 +38,7 @@ sudo apt update && sudo apt install build-essential libssl-dev mesa-opencl-icd o
 * Install Rust. See [instructions](https://www.rust-lang.org/tools/install). (if you have homebrew installed rust, you may need to uninstall that if you get errors in the build)
 * Install Cargo make: `cargo install --force cargo-make`
 * Install docker. See [instructions](https://docs.docker.com/desktop/install/mac-install/).
+* Install Node.js. See [instructions](https://nodejs.org/en/download).
 * Install foundry. See [instructions](https://book.getfoundry.sh/getting-started/installation).
 {% endtab %}
 {% endtabs %}
