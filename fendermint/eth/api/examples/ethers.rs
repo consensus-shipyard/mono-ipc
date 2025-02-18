@@ -710,7 +710,8 @@ where
     // Set up the transaction details for a legacy transaction
     let tx = TransactionRequest::new()
         .to(to.eth_addr) // Replace with recipient address
-        .value(U256::from(1u64)); // Gas limit for standard ETH transfer
+        .gas_price(500)
+        .value(U256::from(1u64));
 
     // Send the transaction
     let pending_tx = mw.send_transaction(tx, None).await?;
@@ -788,8 +789,8 @@ where
     // Set the gas based on the testkit so it doesn't trigger estimation.
     let mut tx = tx
         .gas(ENOUGH_GAS)
-        .max_fee_per_gas(0)
-        .max_priority_fee_per_gas(0)
+        .max_fee_per_gas(500)
+        .max_priority_fee_per_gas(500)
         .into();
 
     // Fill in the missing fields like `from` and `nonce` (which involves querying the API).

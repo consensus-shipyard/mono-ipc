@@ -15,10 +15,8 @@ use num_traits::Zero;
 
 #[derive(Debug, Clone)]
 pub struct BlockGasTracker {
-    /// The current base fee.
-    base_fee: TokenAmount,
-    /// The current block gas limit.
-    block_gas_limit: Gas,
+    /// The currently active gas market reading.
+    current_gas_market: Reading,
     /// The cumulative gas premiums claimable by the block producer.
     cumul_gas_premium: TokenAmount,
     /// The accumulated gas usage throughout the block.
@@ -26,28 +24,22 @@ pub struct BlockGasTracker {
 }
 
 impl BlockGasTracker {
-    pub fn base_fee(&self) -> &TokenAmount {
-        &self.base_fee
+    pub fn current_gas_market(&self) -> &Reading {
+        &self.current_gas_market
     }
 
     pub fn create<E: Executor>(executor: &mut E) -> anyhow::Result<BlockGasTracker> {
-        let mut ret = Self {
-            base_fee: Zero::zero(),
-            block_gas_limit: Zero::zero(),
+        Self::read_gas_market(executor).map(|reading| Self {
+            current_gas_market: reading,
             cumul_gas_premium: Zero::zero(),
             cumul_gas_used: Zero::zero(),
-        };
-
-        let reading = Self::read_gas_market(executor)?;
-
-        ret.base_fee = reading.base_fee;
-        ret.block_gas_limit = reading.block_gas_limit;
-
-        Ok(ret)
+        })
     }
 
     pub fn available(&self) -> Gas {
-        self.block_gas_limit.saturating_sub(self.cumul_gas_used)
+        self.current_gas_market
+            .block_gas_limit
+            .saturating_sub(self.cumul_gas_used)
     }
 
     pub fn ensure_sufficient_gas(&self, msg: &FvmMessage) -> anyhow::Result<()> {
@@ -66,7 +58,7 @@ impl BlockGasTracker {
         self.cumul_gas_used = self.cumul_gas_used.saturating_add(ret.msg_receipt.gas_used);
 
         // sanity check, should not happen; only trace if it does so we can debug later.
-        if self.cumul_gas_used >= self.block_gas_limit {
+        if self.cumul_gas_used >= self.current_gas_market.block_gas_limit {
             tracing::warn!("out of block gas; cumulative gas used exceeds block gas limit!");
         }
     }

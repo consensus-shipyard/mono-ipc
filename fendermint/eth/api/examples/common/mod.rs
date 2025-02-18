@@ -121,8 +121,8 @@ where
         let tx = tx.expect("eip1559");
 
         tx.gas = Some(ENOUGH_GAS.into());
-        tx.max_fee_per_gas = Some(0.into());
-        tx.max_priority_fee_per_gas = Some(0.into());
+        tx.max_fee_per_gas = Some(500.into());
+        tx.max_priority_fee_per_gas = Some(500.into());
     }
 
     // Fill in the missing fields like `from` and `nonce` (which involves querying the API).

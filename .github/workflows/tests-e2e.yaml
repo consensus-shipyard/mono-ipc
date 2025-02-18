@@ -6,6 +6,10 @@ on:
 
 jobs:
   run:
+    strategy:
+      matrix:
+        target: [ test-smoke, test-snapshot, test-graph, test-materializer ]
+
     runs-on: ubuntu-latest
 
     env:
@@ -48,6 +52,6 @@ jobs:
         with:
           shared-key: build
 
-      - name: Run e2e tests
-        run: cd fendermint && PROFILE=release make e2e-only
+      - name: Run e2e tests (${{ matrix.target }})
+        run: cd fendermint && PROFILE=release make ${{ matrix.target }}
 

@@ -16,6 +16,8 @@ pub struct Reading {
     pub block_gas_limit: Gas,
     /// The current base fee for the block.
     pub base_fee: TokenAmount,
+    /// The minimum allowable base fee.
+    pub min_base_fee: TokenAmount,
 }
 
 /// The current utilization for the client to report to the gas market.

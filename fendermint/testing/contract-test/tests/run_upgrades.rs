@@ -41,12 +41,14 @@ async fn test_applying_upgrades() {
     use lazy_static::lazy_static;
 
     lazy_static! {
-       /// Default gas params based on the testkit.
-       static ref GAS_PARAMS: GasParams = GasParams {
-           gas_limit: 10_000_000_000,
-           gas_fee_cap: TokenAmount::default(),
-           gas_premium: TokenAmount::default(),
-       };
+        /// Default gas params based on the testkit.
+        static ref GAS_PARAMS: GasParams = GasParams {
+            gas_limit: 10_000_000_000,
+            // The default minimum base fee is 100 atto; let's make it higher for tests.
+            gas_fee_cap: TokenAmount::from_atto(500),
+            // Any remainder from the fee cap minus base fee goes to the miner as premium.
+            gas_premium: TokenAmount::from_atto(500),
+        };
        static ref ADDR: Address = Address::new_secp256k1(&my_secret_key().public_key().serialize()).unwrap();
     }
 

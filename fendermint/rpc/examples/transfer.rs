@@ -34,8 +34,10 @@ lazy_static! {
     /// Default gas params based on the testkit.
     static ref GAS_PARAMS: GasParams = GasParams {
         gas_limit: 10_000_000_000,
-        gas_fee_cap: TokenAmount::default(),
-        gas_premium: TokenAmount::default(),
+        // The default minimum base fee is 100 atto; let's make it higher for tests.
+        gas_fee_cap: TokenAmount::from_atto(500),
+        // Any remainder from the fee cap minus base fee goes to the miner as premium.
+        gas_premium: TokenAmount::from_atto(500),
     };
 }
 
