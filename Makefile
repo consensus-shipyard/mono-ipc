@@ -3,11 +3,9 @@
 
 default:
 	cd contracts && make gen
-	cargo build --release
-	./target/release/ipc-cli --version
-	./target/release/fendermint --version
+	cd crates && (cargo build --release && ./target/release/ipc-cli --version && ./target/release/fendermint --version)
 
-SUBTREES_RUST := fendermint ipc ipld/resolver
+SUBTREES_RUST := $(patsubst %, crates/%, $(ls -1 crates))
 SUBTREES_CONTRACTS := contracts
 SUBTREES_ALL := $(SUBTREES_RUST) $(SUBTREES_CONTRACTS)
 

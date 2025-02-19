@@ -6,7 +6,6 @@ crytic-export/
 .env
 broadcast/
 out/
-binding/src
 
 node_modules
 
@@ -22,7 +21,7 @@ deployments.json
 scripts/*.out
 scripts/deploy-registry.ts
 scripts/deploy-gateway.ts
-binding/target
+contract-bindings/target
 subnet.registry.json
 subnet.actor.json
 

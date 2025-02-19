@@ -38,7 +38,7 @@ This error can happen for example when upgrading to a new major/minor FVM versio
 
 When upgrading FVM dependency (from 4.0 to 4.1) it resulted in our `fendermint/actors/build.rs` script to fail due Cargo including multiple new dependencies in the `wasm32` target which did not occur before and caused build errors since these new dependencies did not support Wasm target.
 
-By running `cargo tree` we saw that these dependencies were pulled in from the `filecoin-proofs-api` required by `fvm_shared`. This dependency is pulled in when requiring `fvm_shared` with the `crypto` feature. Looking at our different Cargo.toml files, we noticed that `contract-bindings/Cargo.toml` file was the only one setting that feature. We needed to remove the `crypto` feature, compile, and then add it back in for the wasm build (and tests) to succeed.
+By running `cargo tree` we saw that these dependencies were pulled in from the `filecoin-proofs-api` required by `fvm_shared`. This dependency is pulled in when requiring `fvm_shared` with the `crypto` feature. Looking at our different Cargo.toml files, we noticed that `contracts/bindings/Cargo.toml` file was the only one setting that feature. We needed to remove the `crypto` feature, compile, and then add it back in for the wasm build (and tests) to succeed.
 
 ## Troubleshooting Misc Cargo related issues
 

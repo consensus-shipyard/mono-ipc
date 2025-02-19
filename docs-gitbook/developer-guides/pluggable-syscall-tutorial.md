@@ -349,14 +349,14 @@ In order to see this working end to end in IPC, you can run one of our integrati
 We must first need to build a new docker container for the fendermint image which will contain all the code you have added so for. To do this run:
 
 ```bash
-cd fendermint
+cd crates/node
 make docker-build
 ```
 
 After the fendermint docker image has been built, you can run one of the integration tests
 
 ```bash
-cd fendermint/testing/smoke-test
+cd crates/node/testing/smoke-test
 # creates the docker containers
 cargo make setup
 # runs the integration test

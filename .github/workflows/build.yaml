@@ -51,12 +51,12 @@ jobs:
         with:
           path: |
             ./contracts/out
-            ./contract-bindings
             ./contracts/cache
+            ./crates/contract-bindings
           ## TODO maybe add the rust version and solc version to the key
           key: v2-contracts-abi-${{ hashFiles('./contracts/**/*.sol') }}
 
-      - name: Generate ABI and bindings
+      - name: Generate ABI and contract-bindings
         run: cd contracts && make gen
 
       - name: Install Rust nightly
@@ -66,6 +66,7 @@ jobs:
           components: rustfmt,clippy
 
       - name: Print Rust toolchain default versions
+        working-directory: crates
         run: |
           echo "rustup show:"
           rustup show
@@ -77,14 +78,17 @@ jobs:
           ldd --version
 
       - name: Check fmt (nightly)
+        working-directory: crates
         run: cargo +nightly-2024-07-05 fmt --check --all
 
       - name: Check clippy
+        working-directory: crates
         run: cargo clippy --release --tests --no-deps -- -D clippy::all
 
       - name: Build all (including tests, benches, examples)
+        working-directory: crates/node
         run: |
-          cd fendermint && make $PWD/builtin-actors/output/bundle.car
+          make $PWD/builtin-actors/output/bundle.car
           cargo build --locked --release --all-targets
 
       - name: Build Docker image for e2e tests
@@ -93,31 +97,31 @@ jobs:
           cat <<EOF > /tmp/Dockerfile
           # syntax=docker/dockerfile:1
           FROM alpine as builder
-          COPY /fendermint/app/config /app/fendermint/app/config
-          COPY /target/release/fendermint /app/output/bin/fendermint
-          COPY /target/release/ipc-cli /app/output/bin/ipc-cli
+          COPY /crates/node/app/config /app/fendermint/app/config
+          COPY /crates/target/release/fendermint /app/output/bin/fendermint
+          COPY /crates/target/release/ipc-cli /app/output/bin/ipc-cli
           EOF
-          
+
           ## Append the runner build phase to the Dockerfile.
-          cat fendermint/docker/runner.Dockerfile >> /tmp/Dockerfile
-          
+          cat crates/node/docker/runner.Dockerfile >> /tmp/Dockerfile
+
           ## Print the Dockerfile for debugging.
           echo "Dockerfile:"
           cat /tmp/Dockerfile
-          
+
           ## Create the temporary .dockerignore file.
           cat <<EOF > /tmp/Dockerfile.dockerignore
           target
-          !target/release/fendermint
-          !target/release/ipc-cli
+          !crates/target/release/fendermint
+          !crates/target/release/ipc-cli
           contracts/cache
           contracts/node-modules
           EOF
-          
+
           ## Print the .dockerignore file for debugging.
           echo "Dockerfile.dockerignore:"
           cat /tmp/Dockerfile.dockerignore
-          
+
           ## Build the Docker image.
           DOCKER_BUILDKIT=1 docker build \
             --load \
