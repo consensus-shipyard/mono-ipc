@@ -1,0 +1,22 @@
+[package]
+name = "dagger"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+license-file.workspace = true
+default-run = "run-dagger-pipeline"
+
+[[bin]]
+name = "run-dagger-pipeline"
+path = "dagger.rs"
+
+[dependencies]
+dagger-sdk = "*"
+tokio = { workspace = true }
+thiserror = { workspace = true }
+color-eyre = { workspace = true }
+rand = { workspace = true }
+toml = { workspace = true }
+serde = { workspace = true }
+fs-err = { workspace = true }
