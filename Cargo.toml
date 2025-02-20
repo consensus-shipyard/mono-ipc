@@ -247,14 +247,14 @@ tendermint-rpc = { version = "0.31", features = [
 tendermint-proto = { version = "0.31" }
 
 [patch.crates-io]
-fvm = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
-fvm_shared = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
-fvm_sdk = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
-fvm_ipld_blockstore = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
-fvm_ipld_car = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
-fvm_ipld_encoding = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
-fvm_ipld_hamt = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
-fvm_ipld_amt = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
+fvm = { git = "https://github.com/consensus-shipyard/ref-fvm.git", branch = "customize-gas" }
+fvm_shared = { git = "https://github.com/consensus-shipyard/ref-fvm.git", branch = "customize-gas" }
+fvm_sdk = { git = "https://github.com/consensus-shipyard/ref-fvm.git", branch = "customize-gas" }
+fvm_ipld_blockstore = { git = "https://github.com/consensus-shipyard/ref-fvm.git", branch = "customize-gas" }
+fvm_ipld_car = { git = "https://github.com/consensus-shipyard/ref-fvm.git", branch = "customize-gas" }
+fvm_ipld_encoding = { git = "https://github.com/consensus-shipyard/ref-fvm.git", branch = "customize-gas" }
+fvm_ipld_hamt = { git = "https://github.com/consensus-shipyard/ref-fvm.git", branch = "customize-gas" }
+fvm_ipld_amt = { git = "https://github.com/consensus-shipyard/ref-fvm.git", branch = "customize-gas" }
 
 [profile.wasm]
 inherits = "release"

@@ -191,6 +191,24 @@ impl SignedMessageFactory {
         Ok(chain)
     }
 
+    /// Send a validator message to the fendermint
+    pub fn create_chain_message<T, F: Fn(SignedMessage) -> T>(
+        &mut self,
+        to: Address,
+        calldata: Bytes,
+        value: TokenAmount,
+        gas_params: GasParams,
+        f: F,
+    ) -> anyhow::Result<T> {
+        let params = RawBytes::serialize(BytesSer(&calldata))?;
+        let method_num = evm::Method::InvokeContract as u64;
+        let message = self
+            .inner
+            .transaction(to, method_num, params, value, gas_params);
+        let signed = SignedMessage::new_secp256k1(message, &self.sk, &self.chain_id)?;
+        Ok(f(signed))
+    }
+
     /// Deploy a FEVM contract.
     pub fn fevm_create(
         &mut self,
