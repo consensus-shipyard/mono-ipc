@@ -17,9 +17,7 @@ pub struct ActorActivityTracker<'a, DB: Blockstore + Clone + 'static> {
     pub(crate) executor: &'a mut FvmExecState<DB>,
 }
 
-impl<'a, DB: Blockstore + Clone + 'static> ValidatorActivityTracker
-    for ActorActivityTracker<'a, DB>
-{
+impl<DB: Blockstore + Clone + 'static> ValidatorActivityTracker for ActorActivityTracker<'_, DB> {
     fn record_block_committed(&mut self, validator: PublicKey) -> anyhow::Result<()> {
         let address: Address = EthAddress::from(validator).into();
 

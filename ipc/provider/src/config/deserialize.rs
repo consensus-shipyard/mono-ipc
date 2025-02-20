@@ -41,7 +41,7 @@ where
     D: Deserializer<'de>,
 {
     struct Visitor;
-    impl<'de> serde::de::Visitor<'de> for Visitor {
+    impl serde::de::Visitor<'_> for Visitor {
         type Value = Address;
 
         fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
@@ -66,7 +66,7 @@ where
     D: Deserializer<'de>,
 {
     struct Visitor;
-    impl<'de> serde::de::Visitor<'de> for Visitor {
+    impl serde::de::Visitor<'_> for Visitor {
         type Value = Address;
 
         fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
@@ -89,7 +89,7 @@ where
     D: Deserializer<'de>,
 {
     struct SubnetIDVisitor;
-    impl<'de> serde::de::Visitor<'de> for SubnetIDVisitor {
+    impl serde::de::Visitor<'_> for SubnetIDVisitor {
         type Value = SubnetID;
 
         fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {

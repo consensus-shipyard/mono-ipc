@@ -127,7 +127,7 @@ multihash = { version = "0.18.1", default-features = false, features = [
   "sha3",
 ] }
 num-bigint = "0.4"
-num-derive = "0.3"
+num-derive = "0.4"
 num-traits = "0.2"
 num_enum = "0.7.2"
 paste = "1"
@@ -143,7 +143,7 @@ rand_chacha = "0.3"
 regex = "1"
 reqwest = { version = "0.11.13", features = ["json"] }
 sha2 = "0.10"
-serde = { version = "1", features = ["derive"] }
+serde = { version = "1.0.217", features = ["derive"] }
 serde_bytes = "0.11"
 serde_json = { version = "1", features = ["raw_value"] }
 serde_yaml = { version = "0.9" }
@@ -197,9 +197,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 # pull in crates as transitive dependencies that do not support Wasm architector. If this
 # happens, try removing "crypto" feature from fvm_shared dependency in contract-bindings/Cargo.toml
 # and run `cargo build`. Then add the "crypto" feature back and run `cargo build` again.
-fvm = { version = "4.4.0", features = [
-  "verify-signature",
-], default-features = false } # no opencl feature or it fails on CI
+fvm = { version = "4.4.0", features = ["verify-signature"], default-features = false } # no opencl feature or it fails on CI
 fvm_shared = { version = "4.4.0" }
 fvm_sdk = { version = "4.4.0" }
 
@@ -247,6 +245,16 @@ tendermint-rpc = { version = "0.31", features = [
   "websocket-client",
 ] }
 tendermint-proto = { version = "0.31" }
+
+[patch.crates-io]
+fvm = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
+fvm_shared = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
+fvm_sdk = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
+fvm_ipld_blockstore = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
+fvm_ipld_car = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
+fvm_ipld_encoding = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
+fvm_ipld_hamt = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
+fvm_ipld_amt = { git = "https://github.com/consensus-shipyard/ref-fvm.git" }
 
 [profile.wasm]
 inherits = "release"

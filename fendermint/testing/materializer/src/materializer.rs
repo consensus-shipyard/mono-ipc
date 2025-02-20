@@ -271,7 +271,7 @@ pub enum TargetConfig<'a, M: Materials> {
     Internal(&'a M::Node),
 }
 
-impl<'a, M: Materials> SubmitConfig<'a, M> {
+impl<M: Materials> SubmitConfig<'_, M> {
     /// Map over the internal and external target configurations to find a first non-empty result.
     pub fn find_node<F, G, T>(&self, f: F, g: G) -> Option<T>
     where

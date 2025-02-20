@@ -99,7 +99,7 @@ where
     D: Deserializer<'de>,
 {
     struct TokenAmountVisitor;
-    impl<'de> serde::de::Visitor<'de> for TokenAmountVisitor {
+    impl serde::de::Visitor<'_> for TokenAmountVisitor {
         type Value = TokenAmount;
 
         fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
@@ -125,7 +125,7 @@ where
     D: Deserializer<'de>,
 {
     struct TokenAmountVisitor;
-    impl<'de> serde::de::Visitor<'de> for TokenAmountVisitor {
+    impl serde::de::Visitor<'_> for TokenAmountVisitor {
         type Value = Option<TokenAmount>;
 
         fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
@@ -168,7 +168,7 @@ where
     D: Deserializer<'de>,
 {
     struct AddressVisitor;
-    impl<'de> serde::de::Visitor<'de> for AddressVisitor {
+    impl serde::de::Visitor<'_> for AddressVisitor {
         type Value = Address;
 
         fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
