@@ -5,6 +5,7 @@
 //! sharing their materializer state.
 
 // Tests using the manifest bearing their name.
+mod benches;
 pub mod layer2;
 pub mod root_only;
 pub mod standalone;
