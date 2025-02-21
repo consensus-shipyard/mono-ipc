@@ -164,7 +164,7 @@ where
 
             // Using TxSync instead of TxCommit because TxCommit times out if the `check_tx` part fails,
             // instead of returning as soon as the check failed with some default values for `deliver_tx`.
-            let res = TxClient::<TxSync>::fevm_invoke(
+            let res = TxClient::<TxSync>::validator_invoke(
                 &mut client,
                 contract,
                 calldata.0.clone(),

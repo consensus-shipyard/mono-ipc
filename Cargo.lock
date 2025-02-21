@@ -3403,6 +3403,7 @@ dependencies = [
  "fvm_ipld_encoding",
  "fvm_shared",
  "hex",
+ "ipc_actors_abis",
  "lazy_static",
  "prost 0.11.9",
  "serde",
@@ -4275,7 +4276,7 @@ dependencies = [
 [[package]]
 name = "fvm"
 version = "4.4.4"
-source = "git+https://github.com/consensus-shipyard/ref-fvm.git#579946fe430c771c98e8d63d464f5038ed66e2ad"
+source = "git+https://github.com/consensus-shipyard/ref-fvm.git?branch=customize-gas#d2d972b5b41b9873fb6b1e3c867a8db18c5bd0e1"
 dependencies = [
  "ambassador",
  "anyhow",
@@ -4322,7 +4323,7 @@ dependencies = [
 [[package]]
 name = "fvm_ipld_amt"
 version = "0.6.2"
-source = "git+https://github.com/consensus-shipyard/ref-fvm.git#579946fe430c771c98e8d63d464f5038ed66e2ad"
+source = "git+https://github.com/consensus-shipyard/ref-fvm.git?branch=customize-gas#d2d972b5b41b9873fb6b1e3c867a8db18c5bd0e1"
 dependencies = [
  "anyhow",
  "cid 0.10.1",
@@ -4349,7 +4350,7 @@ dependencies = [
 [[package]]
 name = "fvm_ipld_blockstore"
 version = "0.2.1"
-source = "git+https://github.com/consensus-shipyard/ref-fvm.git#579946fe430c771c98e8d63d464f5038ed66e2ad"
+source = "git+https://github.com/consensus-shipyard/ref-fvm.git?branch=customize-gas#d2d972b5b41b9873fb6b1e3c867a8db18c5bd0e1"
 dependencies = [
  "anyhow",
  "cid 0.10.1",
@@ -4359,7 +4360,7 @@ dependencies = [
 [[package]]
 name = "fvm_ipld_car"
 version = "0.7.1"
-source = "git+https://github.com/consensus-shipyard/ref-fvm.git#579946fe430c771c98e8d63d464f5038ed66e2ad"
+source = "git+https://github.com/consensus-shipyard/ref-fvm.git?branch=customize-gas#d2d972b5b41b9873fb6b1e3c867a8db18c5bd0e1"
 dependencies = [
  "cid 0.10.1",
  "futures",
@@ -4373,7 +4374,7 @@ dependencies = [
 [[package]]
 name = "fvm_ipld_encoding"
 version = "0.4.0"
-source = "git+https://github.com/consensus-shipyard/ref-fvm.git#579946fe430c771c98e8d63d464f5038ed66e2ad"
+source = "git+https://github.com/consensus-shipyard/ref-fvm.git?branch=customize-gas#d2d972b5b41b9873fb6b1e3c867a8db18c5bd0e1"
 dependencies = [
  "anyhow",
  "cid 0.10.1",
@@ -4389,7 +4390,7 @@ dependencies = [
 [[package]]
 name = "fvm_ipld_hamt"
 version = "0.9.0"
-source = "git+https://github.com/consensus-shipyard/ref-fvm.git#579946fe430c771c98e8d63d464f5038ed66e2ad"
+source = "git+https://github.com/consensus-shipyard/ref-fvm.git?branch=customize-gas#d2d972b5b41b9873fb6b1e3c867a8db18c5bd0e1"
 dependencies = [
  "anyhow",
  "byteorder",
@@ -4408,7 +4409,7 @@ dependencies = [
 [[package]]
 name = "fvm_sdk"
 version = "4.4.4"
-source = "git+https://github.com/consensus-shipyard/ref-fvm.git#579946fe430c771c98e8d63d464f5038ed66e2ad"
+source = "git+https://github.com/consensus-shipyard/ref-fvm.git?branch=customize-gas#d2d972b5b41b9873fb6b1e3c867a8db18c5bd0e1"
 dependencies = [
  "cid 0.10.1",
  "fvm_ipld_encoding",
@@ -4422,7 +4423,7 @@ dependencies = [
 [[package]]
 name = "fvm_shared"
 version = "4.4.4"
-source = "git+https://github.com/consensus-shipyard/ref-fvm.git#579946fe430c771c98e8d63d464f5038ed66e2ad"
+source = "git+https://github.com/consensus-shipyard/ref-fvm.git?branch=customize-gas#d2d972b5b41b9873fb6b1e3c867a8db18c5bd0e1"
 dependencies = [
  "anyhow",
  "arbitrary",

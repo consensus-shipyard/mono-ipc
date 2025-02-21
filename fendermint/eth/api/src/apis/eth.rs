@@ -17,7 +17,7 @@ use fendermint_rpc::query::QueryClient;
 use fendermint_rpc::response::{decode_data, decode_fevm_invoke, decode_fevm_return_data};
 use fendermint_vm_actor_interface::eam::{EthAddress, EAM_ACTOR_ADDR};
 use fendermint_vm_actor_interface::evm;
-use fendermint_vm_message::chain::ChainMessage;
+use fendermint_vm_message::chain::{ChainMessage, ValidatorMessage};
 use fendermint_vm_message::query::FvmQueryHeight;
 use fendermint_vm_message::signed::SignedMessage;
 use fil_actors_evm_shared::uints;
@@ -995,7 +995,10 @@ where
                         !addrs.is_empty() && addrs.intersection(&emitters).next().is_none();
 
                     match to_chain_message(tx) {
-                        Ok(ChainMessage::Signed(msg)) => {
+                        Ok(ChainMessage::Signed(msg))
+                        | Ok(ChainMessage::Validator(ValidatorMessage::SignBottomUpCheckpoint(
+                            msg,
+                        ))) => {
                             // Filter by sender and recipient addresses.
                             if addrs_disjoint_from_emitters
                                 && !addrs.contains(&msg.message().from)
