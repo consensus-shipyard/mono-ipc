@@ -41,6 +41,7 @@ members = [
   "fendermint/actors/activity-tracker",
   "fendermint/actors/eam",
   "fendermint/actors/gas_market/eip1559",
+  "dagger",
 ]
 
 [workspace.package]
@@ -67,9 +68,10 @@ base64 = "0.21"
 bollard = "0.15"
 blake2b_simd = "1.0"
 bloom = "0.3"
+byteorder = "1.5.0"
 bytes = "1.4"
 clap = { version = "4.1", features = ["derive", "env", "string"] }
-byteorder = "1.5.0"
+color-eyre = "0.5"
 config = "0.13"
 dirs = "5.0"
 dircpy = "0.3.19"
