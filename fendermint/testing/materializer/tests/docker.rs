@@ -6,14 +6,6 @@
 //!
 //! `cargo test -p fendermint_materializer --test docker -- --nocapture`
 
-use std::{
-    collections::BTreeSet,
-    env::current_dir,
-    path::PathBuf,
-    pin::Pin,
-    time::{Duration, Instant},
-};
-
 use anyhow::{anyhow, Context};
 use ethers::providers::Middleware;
 use fendermint_materializer::{
@@ -22,8 +14,15 @@ use fendermint_materializer::{
     testnet::Testnet,
     HasCometBftApi, HasEthApi, TestnetName,
 };
-use futures::Future;
+use futures::{Future, FutureExt};
 use lazy_static::lazy_static;
+use std::{
+    collections::BTreeSet,
+    env::current_dir,
+    path::PathBuf,
+    pin::Pin,
+    time::{Duration, Instant},
+};
 use tendermint_rpc::Client;
 
 pub type DockerTestnet = Testnet<DockerMaterials, DockerMaterializer>;
@@ -58,16 +57,16 @@ fn read_manifest(file_name: &str) -> anyhow::Result<Manifest> {
 }
 
 /// Parse a manifest file in the `manifests` directory, clean up any corresponding
-/// testnet resources, then materialize a testnet and run some tests.
-pub async fn with_testnet<F, G>(manifest_file_name: &str, alter: G, test: F) -> anyhow::Result<()>
+/// testnet resources, then materialize a testnet and provide a cleanup function.
+pub async fn make_testnet<F>(
+    manifest_file_name: &str,
+    alter: F,
+) -> anyhow::Result<(
+    DockerTestnet,
+    Box<dyn FnOnce(bool, DockerTestnet) -> Pin<Box<dyn Future<Output = ()> + Send>> + Send>,
+)>
 where
-    // https://users.rust-lang.org/t/function-that-takes-a-closure-with-mutable-reference-that-returns-a-future/54324
-    F: for<'a> FnOnce(
-        &Manifest,
-        &mut DockerMaterializer,
-        &'a mut DockerTestnet,
-    ) -> Pin<Box<dyn Future<Output = anyhow::Result<()>> + 'a>>,
-    G: FnOnce(&mut Manifest),
+    F: FnOnce(&mut Manifest),
 {
     let testnet_name = TestnetName::new(
         PathBuf::from(manifest_file_name)
@@ -98,48 +97,49 @@ where
         .await
         .context("failed to remove testnet")?;
 
-    let mut testnet = Testnet::setup(&mut materializer, &testnet_name, &manifest)
+    let testnet = Testnet::setup(&mut materializer, &testnet_name, &manifest)
         .await
         .context("failed to set up testnet")?;
 
     let started = wait_for_startup(&testnet).await?;
-
-    let res = if started {
-        test(&manifest, &mut materializer, &mut testnet).await
-    } else {
-        Err(anyhow!("the startup sequence timed out"))
-    };
-
-    // Print all logs on failure.
-    // Some might be available in logs in the files which are left behind,
-    // e.g. for `fendermint` we have logs, but maybe not for `cometbft`.
-    if res.is_err() && *PRINT_LOGS_ON_ERROR {
-        for (name, node) in testnet.nodes() {
-            let name = name.path_string();
-            for log in node.fendermint_logs().await {
-                eprintln!("{name}/fendermint: {log}");
-            }
-            for log in node.cometbft_logs().await {
-                eprintln!("{name}/cometbft: {log}");
-            }
-            for log in node.ethapi_logs().await {
-                eprintln!("{name}/ethapi: {log}");
-            }
-        }
+    if !started {
+        return Err(anyhow!("the startup sequence timed out"));
     }
 
-    // Tear down the testnet.
-    drop(testnet);
+    let cleanup = Box::new(|failure: bool, testnet: DockerTestnet| {
+        async move {
+            println!("Cleaning up...");
 
-    // Allow some time for containers to be dropped.
-    // This only happens if the testnet setup succeeded,
-    // otherwise the system shuts down too quick, but
-    // at least we can inspect the containers.
-    // If they don't all get dropped, `docker system prune` helps.
-    let drop_handle = materializer.take_dropper();
-    let _ = tokio::time::timeout(*TEARDOWN_TIMEOUT, drop_handle).await;
+            // Print all logs on failure.
+            // Some might be available in logs in the files which are left behind,
+            // e.g. for `fendermint` we have logs, but maybe not for `cometbft`.
+            if failure && *PRINT_LOGS_ON_ERROR {
+                for (name, node) in testnet.nodes() {
+                    let name = name.path_string();
+                    for log in node.fendermint_logs().await {
+                        eprintln!("{name}/fendermint: {log}");
+                    }
+                    for log in node.cometbft_logs().await {
+                        eprintln!("{name}/cometbft: {log}");
+                    }
+                    for log in node.ethapi_logs().await {
+                        eprintln!("{name}/ethapi: {log}");
+                    }
+                }
+            }
 
-    res
+            // Allow some time for containers to be dropped.
+            // This only happens if the testnet setup succeeded,
+            // otherwise the system shuts down too quick, but
+            // at least we can inspect the containers.
+            // If they don't all get dropped, `docker system prune` helps.
+            let drop_handle = materializer.take_dropper();
+            let _ = tokio::time::timeout(*TEARDOWN_TIMEOUT, drop_handle).await;
+        }
+        .boxed()
+    });
+
+    Ok((testnet, cleanup))
 }
 
 /// Allow time for things to consolidate and APIs to start.

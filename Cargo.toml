@@ -141,6 +141,7 @@ quickcheck_macros = "1"
 rand = "0.8"
 rand_chacha = "0.3"
 regex = "1"
+statrs = "0.18.0"
 reqwest = { version = "0.11.13", features = ["json"] }
 sha2 = "0.10"
 serde = { version = "1", features = ["derive"] }
@@ -174,6 +175,7 @@ tracing-subscriber = { version = "0.3", features = [
   "registry",
 ] }
 tracing-appender = "0.2.3"
+text-tables = "0.3.1"
 url = { version = "2.4.1", features = ["serde"] }
 zeroize = "1.6"
 

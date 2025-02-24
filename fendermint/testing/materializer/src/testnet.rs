@@ -140,6 +140,15 @@ where
             .ok_or_else(|| anyhow!("account {id} does not exist"))
     }
 
+    pub fn account_mod_nth(&self, v: usize) -> &M::Account {
+        let nth = v % self.accounts.len();
+        self.accounts.values().nth(nth).unwrap()
+    }
+
+    pub fn accounts(&self) -> &BTreeMap<AccountId, M::Account> {
+        &self.accounts
+    }
+
     /// Get a node by name.
     pub fn node(&self, name: &NodeName) -> anyhow::Result<&M::Node> {
         self.nodes
