@@ -18,7 +18,7 @@ The `ipc-cli` has internally an EVM wallet that it uses to sign transactions and
 "0x406a7a1d002b71ece175cc7e067620ae5b58e9ec"
 ```
 
-* Exporting a key stored in the IPC cli keystore.
+* Exporting a key stored in the IPC cli keystore
 
 ```bash
 ./bin/ipc-cli wallet export --wallet-type evm --address <EVM-ADDRESS> > <OUTPUT_FILE>

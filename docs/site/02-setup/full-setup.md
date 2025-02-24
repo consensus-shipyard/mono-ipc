@@ -66,7 +66,7 @@ $ cat test-network/genesis.json
 
 ### Create some keys
 
-Next, let's create some cryptographic key pairs we want want to use either for accounts or validators at Genesis.
+Next, let's create some cryptographic key pairs we want to use either for accounts or validators at Genesis.
 
 ```shell
 mkdir test-network/keys
@@ -85,7 +85,7 @@ $ cat test-network/keys/alice.pk
 Ak5Juk793ZAg/7Ojj4bzOmIFGpwLhET1vg2ROihUJFkq
 ```
 
-If you want to use existing ethereum private key, perform the following:
+If you want to use existing Ethereum private key, perform the following:
 
 ```shell
 cargo run -p fendermint_app --release -- key eth-to-fendermint --secret-key <path to private key> --name eth --out-dir test-network/keys
@@ -745,6 +745,8 @@ $ cargo run -p fendermint_rpc --release --example simplecoin -- --secret-key tes
 Note that the script figures out the Alice's nonce on its own, so we don't have to pass it in. It also has an example of running an EVM view method (which is read-only) either as as a distributed read-transaction (which is included on the chain and costs gas) or a query anwered by our node without involving the blockchain. Both have their uses, depending on our level of trust.
 
 ## Deploy IPC child subnet
+
+### Create genesis from parent
 
 ### Crate genesis from parent
 
