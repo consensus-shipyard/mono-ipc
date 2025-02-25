@@ -34,7 +34,7 @@ jobs:
         uses: ./.github/actions/install-tools
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          rust: 1.81.0
+          rust: 1.83.0
 
       - name: Install Node.js
         uses: actions/setup-node@v2

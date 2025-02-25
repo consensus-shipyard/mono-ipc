@@ -120,7 +120,7 @@ pub struct Transaction<'a, S: KVStore, M> {
     _mode: M,
 }
 
-impl<'a, S: KVStore> KVTransaction for Transaction<'a, S, Write> {
+impl<S: KVStore> KVTransaction for Transaction<'_, S, Write> {
     // An exclusive lock has already been taken.
     fn commit(mut self) -> KVResult<()> {
         let mut guard = self.backend.data.lock().unwrap();
@@ -135,7 +135,7 @@ impl<'a, S: KVStore> KVTransaction for Transaction<'a, S, Write> {
     }
 }
 
-impl<'a, S: KVStore, M> Drop for Transaction<'a, S, M> {
+impl<S: KVStore, M> Drop for Transaction<'_, S, M> {
     fn drop(&mut self) {
         if self.token.is_some() && !thread::panicking() {
             panic!("Transaction prematurely dropped. Must call `.commit()` or `.rollback()`.");
@@ -177,7 +177,7 @@ where
     }
 }
 
-impl<'a, S: KVStore> KVWrite<S> for Transaction<'a, S, Write>
+impl<S: KVStore> KVWrite<S> for Transaction<'_, S, Write>
 where
     S::Repr: Hash + Eq,
 {
@@ -231,7 +231,7 @@ where
     }
 }
 
-impl<'a, S, K, V> Iterator for KVIter<'a, S, K, V>
+impl<S, K, V> Iterator for KVIter<'_, S, K, V>
 where
     S: KVStore + Decode<K> + Decode<V>,
 {

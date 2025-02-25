@@ -208,7 +208,7 @@ where
     }
 }
 
-impl<'a, S> KVWrite<S> for RocksDbWriteTx<'a>
+impl<S> KVWrite<S> for RocksDbWriteTx<'_>
 where
     S: KVStore<Repr = Vec<u8>>,
     S::Namespace: AsRef<str>,
@@ -243,7 +243,7 @@ where
     }
 }
 
-impl<'a> KVTransaction for RocksDbWriteTx<'a> {
+impl KVTransaction for RocksDbWriteTx<'_> {
     fn commit(self) -> KVResult<()> {
         let tx = self.take_tx();
         tx.commit().map_err(to_kv_error)
@@ -255,7 +255,7 @@ impl<'a> KVTransaction for RocksDbWriteTx<'a> {
     }
 }
 
-impl<'a> Drop for RocksDbWriteTx<'a> {
+impl Drop for RocksDbWriteTx<'_> {
     fn drop(&mut self) {
         if !thread::panicking() {
             panic!("Transaction prematurely dropped. Must call `.commit()` or `.rollback()`.");
