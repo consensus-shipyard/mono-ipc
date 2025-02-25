@@ -17,9 +17,9 @@ use ipc_actors_abis::subnet_actor_getter_facet::SubnetActorGetterFacet;
 use crate::with_testnet;
 
 const MANIFEST: &str = "layer2.yaml";
-const CHECKPOINT_PERIOD: u64 = 10;
+const CHECKPOINT_PERIOD: u64 = 2;
 const SLEEP_SECS: u64 = 5;
-const MAX_RETRIES: u32 = 5;
+const MAX_RETRIES: u32 = 10;
 
 /// Test that top-down syncing and bottom-up checkpoint submission work.
 #[serial_test::serial]

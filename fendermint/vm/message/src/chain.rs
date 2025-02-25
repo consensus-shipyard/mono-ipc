@@ -28,6 +28,15 @@ pub enum ChainMessage {
     /// Because of the involvement of data availability voting and CID resolution, these messages require support
     /// from the application, which is why they are handled in a special way.
     Ipc(IpcMessage),
+
+    /// The validator messages for IPC to function correctly.
+    Validator(ValidatorMessage),
+}
+
+/// The messages sent from validators that perform various on chain duties.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ValidatorMessage {
+    SignBottomUpCheckpoint(SignedMessage),
 }
 
 #[cfg(feature = "arb")]

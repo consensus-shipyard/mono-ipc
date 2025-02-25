@@ -4,6 +4,7 @@ use crate::fvm::state::ipc::GatewayCaller;
 use crate::fvm::store::ReadOnlyBlockstore;
 use crate::fvm::{topdown, EndBlockOutput, FvmApplyRet};
 use crate::selector::{GasLimitSelector, MessageSelector};
+use crate::validator::execute_bottom_up_signature;
 use crate::{
     fvm::state::FvmExecState,
     fvm::FvmMessage,
@@ -16,6 +17,7 @@ use async_trait::async_trait;
 use fendermint_tracing::emit;
 use fendermint_vm_actor_interface::ipc;
 use fendermint_vm_event::ParentFinalityMissingQuorum;
+use fendermint_vm_message::chain::ValidatorMessage;
 use fendermint_vm_message::ipc::ParentFinality;
 use fendermint_vm_message::{
     chain::ChainMessage,
@@ -230,6 +232,9 @@ where
                 ChainMessage::Signed(signed) => {
                     block_gas_usage += signed.message.gas_limit;
                 }
+                ChainMessage::Validator(v) => match v {
+                    ValidatorMessage::SignBottomUpCheckpoint(_) => {}
+                },
                 _ => {}
             };
         }
@@ -416,6 +421,12 @@ where
                     Ok(((env, state), ChainMessageApplyRet::Ipc(ret)))
                 }
             },
+            ChainMessage::Validator(v) => match v {
+                ValidatorMessage::SignBottomUpCheckpoint(signed) => {
+                    let ret = execute_bottom_up_signature(&mut state, signed)?;
+                    Ok(((env, state), ret))
+                }
+            },
         }
     }
 
@@ -502,6 +513,16 @@ where
                     }
                 }
             }
+            ChainMessage::Validator(v) => match v {
+                ValidatorMessage::SignBottomUpCheckpoint(msg) => {
+                    let (state, ret) = self
+                        .inner
+                        .check(state, VerifiableMessage::Signed(msg), is_recheck)
+                        .await?;
+
+                    Ok((state, Ok(ret)))
+                }
+            },
         }
     }
 }
@@ -568,6 +589,7 @@ fn messages_selection<DB: Blockstore + Clone + 'static>(
         .into_iter()
         .map(|msg| match msg {
             ChainMessage::Signed(inner) => Ok(inner),
+            ChainMessage::Validator(ValidatorMessage::SignBottomUpCheckpoint(i)) => Ok(i),
             ChainMessage::Ipc(_) => Err(anyhow!("should not have ipc messages in user proposals")),
         })
         .collect::<anyhow::Result<Vec<_>>>()?;

@@ -15,6 +15,7 @@ use fendermint_vm_actor_interface::eam::EthAddress;
 use fendermint_vm_core::{chainid::HasChainID, Timestamp};
 use fendermint_vm_encoding::IsHumanReadable;
 use fendermint_vm_genesis::PowerScale;
+use fvm::executor::{ExecutionOptions, TxnGasHook};
 use fvm::{
     call_manager::DefaultCallManager,
     engine::MultiEngine,
@@ -299,6 +300,32 @@ where
         exec_func(&mut self.executor)
     }
 
+    /// Directly call the fvm execute with options
+    pub fn execute_with_options<F: TxnGasHook>(
+        &mut self,
+        msg: Message,
+        kind: ApplyKind,
+        options: ExecutionOptions<F>,
+    ) -> ExecResult {
+        if let Err(e) = msg.check() {
+            return Ok(check_error(e));
+        }
+
+        // TODO: We could preserve the message length by changing the input type.
+        let raw_length = message_raw_length(&msg)?;
+        let ret = self
+            .executor
+            .execute_message_with_options(msg, kind, raw_length, options)?;
+        let addrs = self.emitter_delegated_addresses(&ret)?;
+
+        // Record the utilization of this message if the apply type was Explicit.
+        if kind == ApplyKind::Explicit {
+            self.block_gas_tracker.record_utilization(&ret);
+        }
+
+        Ok((ret, addrs))
+    }
+
     /// Commit the state. It must not fail, but we're returning a result so that error
     /// handling can be done in the application root.
     ///
@@ -469,6 +496,6 @@ fn check_error(e: anyhow::Error) -> (ApplyRet, ActorAddressMap) {
     (ret, Default::default())
 }
 
-fn message_raw_length(msg: &Message) -> anyhow::Result<usize> {
+pub(crate) fn message_raw_length(msg: &Message) -> anyhow::Result<usize> {
     Ok(fvm_ipld_encoding::to_vec(msg).map(|bz| bz.len())?)
 }
