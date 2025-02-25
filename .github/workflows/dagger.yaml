@@ -1,0 +1,51 @@
+name: Dagger
+
+# This workflow is triggered from the main CI workflow.
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Dagger SDK based pipeline
+    runs-on: ubuntu-22.04
+    env:
+      RUST_BACKTRACE: full
+      RUSTFLAGS: -Dwarnings
+
+    steps:
+      # https://github.com/marketplace/actions/free-disk-space-ubuntu
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          large-packages: false
+          swap-storage: false
+          docker-images: false
+          android: true
+          dotnet: true
+          haskell: true
+
+      - name: Check out the project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Tools
+        uses: ./.github/actions/install-tools
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          rust: 1.81.0
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          ## Share the cache between jobs. If we don't set this, each job will have its own cache.
+          shared-key: build
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-07-05
+          components: rustfmt,clippy
+
+      - name: Dagger
+        run: cargo run

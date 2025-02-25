@@ -23,6 +23,9 @@ on:
 
 
 jobs:
+  dagger:
+    uses: ./.github/workflows/dagger.yaml
+
   commonmark:
     uses: ./.github/workflows/commonmark-lint.yaml
 
